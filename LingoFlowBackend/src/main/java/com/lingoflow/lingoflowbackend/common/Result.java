@@ -1,4 +1,4 @@
-package com.lingoflow.lingoflowbackend;
+package com.lingoflow.lingoflowbackend.common;
 
 import lombok.Data;
 
