@@ -1,5 +1,6 @@
 package com.lingoflow.lingoflowbackend.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.lingoflow.lingoflowbackend.model.dto.ArticleGenerateRequest;
 import com.lingoflow.lingoflowbackend.model.entity.Article;
@@ -14,4 +15,15 @@ public interface ArticleService extends IService<Article> {
      * @return 包含重写后文章信息的视图对象
      */
     ArticleVO generateAndSaveArticle(Long userId, ArticleGenerateRequest request);
+
+    /**
+     * 分页获取当前用户的历史阅读文章列表
+     */
+    Page<ArticleVO> getArticleList(Long userId, Integer page, Integer size);
+
+    /**
+     * 获取文章详情
+     */
+    ArticleVO getArticleDetail(Long userId, Long articleId);
+
 }

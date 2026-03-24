@@ -16,6 +16,8 @@ import org.springframework.ai.chat.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.List;
 
@@ -120,6 +122,59 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             log.error("大模型返回数据解析失败，原始返回: " + aiResponse, e);
             throw new RuntimeException("AI 生成失败或返回格式错误，请重试");
         }
+    }
+
+    @Override
+    public Page<ArticleVO> getArticleList(Long userId, Integer page, Integer size) {
+        // 1. 构造 MyBatis-Plus 的分页参数对象
+        Page<Article> pageParam = new Page<>(page, size);
+
+        // 2. 构造查询条件：只能查当前登录用户的文章，并且按创建时间倒序排（最新的在最上面）
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Article::getUserId, userId)
+                .orderByDesc(Article::getCreateTime);
+
+        // 3. 执行分页查询
+        Page<Article> articlePage = this.page(pageParam, queryWrapper);
+
+        // 4. 将查出来的 Page<Article> 转换为脱敏后的 Page<ArticleVO>
+        Page<ArticleVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
+
+        List<ArticleVO> voList = articlePage.getRecords().stream().map(article -> {
+            ArticleVO vo = new ArticleVO();
+            vo.setId(article.getId());
+            vo.setOriginalText(article.getOriginalText());
+            vo.setAdaptedText(article.getAdaptedText());
+            vo.setTargetLanguage(article.getTargetLanguage());
+            vo.setDifficultyLevel(article.getDifficultyLevel());
+            vo.setCreateTime(article.getCreateTime());
+            return vo;
+        }).collect(java.util.stream.Collectors.toList());
+
+        voPage.setRecords(voList);
+        return voPage;
+    }
+
+    @Override
+    public ArticleVO getArticleDetail(Long userId, Long articleId) {
+        // 1. 根据 ID 查询文章
+        Article article = this.getById(articleId);
+
+        // 2. 校验文章是否存在，且只能查看自己的文章（防止越权访问）
+        if (article == null || !article.getUserId().equals(userId)) {
+            throw new RuntimeException("文章不存在或无权访问");
+        }
+
+        // 3. 封装为 VO 返回
+        ArticleVO vo = new ArticleVO();
+        vo.setId(article.getId());
+        vo.setOriginalText(article.getOriginalText());
+        vo.setAdaptedText(article.getAdaptedText());
+        vo.setTargetLanguage(article.getTargetLanguage());
+        vo.setDifficultyLevel(article.getDifficultyLevel());
+        vo.setCreateTime(article.getCreateTime());
+
+        return vo;
     }
 
     // ================== 内部辅助类，专门用来接收 AI 返回的 JSON 结构 ==================

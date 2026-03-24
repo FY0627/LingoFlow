@@ -56,3 +56,35 @@ Content-Type: application/json
   "difficultyLevel": "PTE 65分水平",
   "originalText": "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. These machines are very different from the classical computers that have been around for more than half a century. While classical computers rely on bits, which can be either 0 or 1, quantum computers use quantum bits, or qubits. Qubits can exist in a state of 0, 1, or both simultaneously, a phenomenon known as superposition."
 }
+
+### 获取历史阅读列表 (分页查询)
+# 默认查第 1 页，每页 10 条
+GET http://localhost:8080/api/article/list?page=1&size=10
+Authorization: Bearer {{jwt_token}}
+
+### 获取单篇文章详情
+# 这里的 3 是你上一回合跑通生成的文章 ID，可以根据你数据库里的实际 ID 替换
+GET http://localhost:8080/api/article/3
+Authorization: Bearer {{jwt_token}}
+
+### 1. 分页获取未掌握的生词列表
+# 查你刚刚用 AI 生成出来的那些生词！
+GET http://localhost:8080/api/vocabulary/list?page=1&size=10&mastered=0
+Authorization: Bearer {{jwt_token}}
+
+### 2. 标记某个生词为已掌握
+# 这里的 1 替换成你数据库里实际的生词 ID
+PUT http://localhost:8080/api/vocabulary/master/1
+Authorization: Bearer {{jwt_token}}
+
+### 3. 手动添加一个生词
+POST http://localhost:8080/api/vocabulary/add
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "articleId": 3,
+  "word": "harness",
+  "translation": "利用、控制",
+  "contextSentence": "that harnesses the laws of quantum mechanics"
+}
