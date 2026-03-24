@@ -25,6 +25,7 @@ public class Vocabulary {
     /**
      * 是否已掌握：1是，0否
      */
+    @TableField("is_deleted")
     private Integer mastered;
 
     @TableField(fill = FieldFill.INSERT)

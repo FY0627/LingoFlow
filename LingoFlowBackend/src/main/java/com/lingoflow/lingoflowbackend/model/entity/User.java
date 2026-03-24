@@ -26,6 +26,7 @@ public class User {
      * 调用 deleteById 时，底层会自动转为 update is_deleted = 1
      */
     @TableLogic
+    @TableField("is_deleted")
     private Integer deleted;
 
     @TableField(fill = FieldFill.INSERT)

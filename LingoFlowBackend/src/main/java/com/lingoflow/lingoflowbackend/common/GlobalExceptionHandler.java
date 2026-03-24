@@ -19,9 +19,14 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     public Result<?> handleRuntimeException(RuntimeException e) {
-        // 只打印警告日志，记录错误信息
+        // 如果是空指针等系统级异常，e.getMessage() 往往是 null，此时必须打印完整堆栈以供排查！
+        if (e instanceof NullPointerException || e.getMessage() == null) {
+            log.error("触发空指针或未知的运行时异常: ", e);
+            return Result.error(500, "后端触发系统异常，请查看 IDEA 控制台红字日志！");
+        }
+
+        // 正常的业务异常（例如我们手动 throw new RuntimeException("用户名已存在")）
         log.warn("业务逻辑异常: {}", e.getMessage());
-        // 将我们在 throw new RuntimeException("...") 里的提示语，原封不动地返回给前端
         return Result.error(e.getMessage());
     }
 

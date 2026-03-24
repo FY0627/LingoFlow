@@ -1,0 +1,140 @@
+package com.lingoflow.lingoflowbackend.service.impl;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lingoflow.lingoflowbackend.mapper.ArticleMapper;
+import com.lingoflow.lingoflowbackend.mapper.VocabularyMapper;
+import com.lingoflow.lingoflowbackend.model.dto.ArticleGenerateRequest;
+import com.lingoflow.lingoflowbackend.model.entity.Article;
+import com.lingoflow.lingoflowbackend.model.entity.Vocabulary;
+import com.lingoflow.lingoflowbackend.model.vo.ArticleVO;
+import com.lingoflow.lingoflowbackend.service.ArticleService;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Slf4j
+@Service
+public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements ArticleService {
+
+    @Autowired
+    private ChatClient chatClient; // 注入我们在 0.8.1 版本中跑通的大模型客户端
+
+    @Autowired
+    private VocabularyMapper vocabularyMapper; // 注入生词本 Mapper
+
+    @Autowired
+    private ObjectMapper objectMapper; // Spring Boot 自带的 JSON 处理神器
+
+    @Override
+    @Transactional(rollbackFor = Exception.class) // 开启数据库事务：文章和生词必须同时保存成功，否则回滚
+    public ArticleVO generateAndSaveArticle(Long userId, ArticleGenerateRequest request) {
+        String originalText = request.getOriginalText();
+        String difficultyLevel = request.getDifficultyLevel();
+
+        // 1. 构建极其严密的 Prompt，约束 AI 的行为和输出格式
+        // 告诉 AI：将文本难度精确调整到用户的当前目标（如匹配 PTE 考试要求或特定词汇量层级）
+        // 1. 构建极其严密的 Prompt，约束 AI 的行为和输出格式
+        String prompt = String.format("""
+            你是一位专业的英语教育专家。Your primary task is to REWRITE the English text, NOT translate it.
+            
+            【核心指令 - 极其重要】
+            你需要将原文**改写（Rewrite）**成难度为【%s】的英文文章。
+            绝不允许翻译成中文！绝不允许翻译成中文！The adaptedText MUST BE IN PURE ENGLISH!
+            
+            【处理要求】
+            1. 英文降维重写：用符合目标难度的英文词汇和语法重写原文，保持原意。
+            2. 提取核心生词：从你改写后的英文文章中，提取 5 到 10 个核心英文生词。
+            
+            【格式要求】
+            你必须且只能返回一个合法的 JSON 对象，绝对不要包含任何其他说明文字或 Markdown 标记（如 ```json）。
+            
+            JSON 结构必须完全如下：
+            {
+              "adaptedText": "这里填写改写后的英文文章（MUST BE PURE ENGLISH）",
+              "vocabularies": [
+                {
+                  "word": "提取的英文生词",
+                  "translation": "结合语境的中文释义",
+                  "contextSentence": "包含该生词的改写文中的英文原句"
+                }
+              ]
+            }
+            
+            【原文内容 / Original Text】
+            %s
+            """, difficultyLevel, originalText);
+
+        // 2. 调用大模型，获取生成的 JSON 字符串
+        String aiResponse = chatClient.call(prompt);
+
+        // 清理 AI 可能不听话偷偷加上的一些 Markdown 标记
+        aiResponse = aiResponse.replace("```json", "").replace("```", "").trim();
+
+        try {
+            // 3. 将大模型返回的 JSON 字符串反序列化为我们定义的内部类对象
+            AiGenerateResult result = objectMapper.readValue(aiResponse, AiGenerateResult.class);
+
+            // 4. 保存文章到数据库
+            Article article = new Article();
+            article.setUserId(userId);
+            article.setOriginalText(originalText);
+            article.setAdaptedText(result.getAdaptedText());
+            article.setTargetLanguage("EN"); // 这里可以根据实际情况做成动态获取
+            article.setDifficultyLevel(difficultyLevel);
+            this.save(article); // 保存后，article.getId() 就会被 MyBatis-Plus 自动赋上主键值
+
+            // 5. 遍历生词列表，批量保存到生词本数据库
+            List<VocabularyItem> vocabs = result.getVocabularies();
+            if (vocabs != null && !vocabs.isEmpty()) {
+                for (VocabularyItem item : vocabs) {
+                    Vocabulary vocabulary = new Vocabulary();
+                    vocabulary.setUserId(userId);
+                    vocabulary.setArticleId(article.getId()); // 关联刚刚生成的文章 ID
+                    vocabulary.setWord(item.getWord());
+                    vocabulary.setTranslation(item.getTranslation());
+                    vocabulary.setContextSentence(item.getContextSentence());
+                    vocabulary.setMastered(0); // 默认未掌握
+                    vocabularyMapper.insert(vocabulary);
+                }
+            }
+
+            // 6. 封装返回值给前端
+            ArticleVO articleVO = new ArticleVO();
+            articleVO.setId(article.getId());
+            articleVO.setOriginalText(article.getOriginalText());
+            articleVO.setAdaptedText(article.getAdaptedText());
+            articleVO.setTargetLanguage(article.getTargetLanguage());
+            articleVO.setDifficultyLevel(article.getDifficultyLevel());
+            articleVO.setCreateTime(article.getCreateTime());
+
+            return articleVO;
+
+        } catch (Exception e) {
+            log.error("大模型返回数据解析失败，原始返回: " + aiResponse, e);
+            throw new RuntimeException("AI 生成失败或返回格式错误，请重试");
+        }
+    }
+
+    // ================== 内部辅助类，专门用来接收 AI 返回的 JSON 结构 ==================
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true) // 忽略 JSON 中多余的未知字段，防止报错
+    public static class AiGenerateResult {
+        private String adaptedText;
+        private List<VocabularyItem> vocabularies;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class VocabularyItem {
+        private String word;
+        private String translation;
+        private String contextSentence;
+    }
+}

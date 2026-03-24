@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @TableName("lingo_article")
+
 public class Article {
 
     @TableId(type = IdType.AUTO)
@@ -23,6 +24,7 @@ public class Article {
     private String difficultyLevel;
 
     @TableLogic
+    @TableField("is_deleted")
     private Integer deleted;
 
     @TableField(fill = FieldFill.INSERT)

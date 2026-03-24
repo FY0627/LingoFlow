@@ -1,0 +1,58 @@
+### =========================================
+### LingoFlow - 用户模块 API 测试脚本
+### =========================================
+
+### 1. 用户注册
+# 点击左侧的绿色箭头运行。如果提示成功，说明数据已落库。
+# 如果你想再测一次，记得把 username 改掉，否则会触发"用户名已存在"的拦截。
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "username": "lingo_master",
+  "password": "password123",
+  "targetLanguage": "EN",
+  "currentLevel": "V2000"
+}
+
+
+### 2. 用户登录 (黑科技：自动保存 Token)
+# 注册成功后点击运行这个。
+# 运行完毕后，注意看 IDEA 底部的 Run 控制台，会打印出 "Token已成功保存"！
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "username": "lingo_master",
+  "password": "password123"
+}
+
+> {%
+    // 这是 IDEA 的自动化脚本：从返回值中提取 Token 并存入全局变量 jwt_token 中
+    if(response.status === 200 && response.body.code === 200) {
+        client.global.set("jwt_token", response.body.data);
+        client.log("✅ Token已成功保存到内存变量中: " + client.global.get("jwt_token"));
+    }
+%}
+
+
+### 3. 获取个人信息 (自动携带 Token)
+# 直接运行！它会自动读取上面登录接口存下来的 {{jwt_token}} 发送给后端。
+GET http://localhost:8080/api/user/info
+Authorization: Bearer {{jwt_token}}
+
+
+### 4. 附加测试：不带 Token 或带假 Token 访问 (预期被拦截)
+# 预期返回："未登录或请求头格式错误" 或 "Token无效或已过期"
+GET http://localhost:8080/api/user/info
+Authorization: Bearer faketoken123456
+
+### 核心功能：AI 改写文章并提取生词
+POST http://localhost:8080/api/article/generate
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "difficultyLevel": "PTE 65分水平",
+  "originalText": "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. These machines are very different from the classical computers that have been around for more than half a century. While classical computers rely on bits, which can be either 0 or 1, quantum computers use quantum bits, or qubits. Qubits can exist in a state of 0, 1, or both simultaneously, a phenomenon known as superposition."
+}

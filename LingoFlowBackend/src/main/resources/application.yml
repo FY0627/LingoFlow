@@ -1,21 +1,28 @@
 server:
-  port: 8080 # Backend service startup port
+  port: 8080
 
 spring:
   application:
     name: LingoFlowBackend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # connect lingo_db database
-    url: jdbc:mysql://localhost:3306/lingo_db?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&useSSL=false
+    url: jdbc:mysql://localhost:3306/lingo_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
     password: 123456
+
+  ai:
+    openai:
+      api-key: sk-uljysvxgzxyjtxyuplfmzecfytnsevmdmcmnmifljtxqinao
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: Qwen/Qwen2.5-7B-Instruct
 
 mybatis-plus:
   global-config:
     db-config:
-      table-prefix: lingo_ # Automatic mapping table prefix
-      id-type: auto # Auto-incrementing primary key
+      table-prefix: lingo_
+      id-type: auto
   configuration:
-    map-underscore-to-camel-case: true # Enable camelCase naming conversion
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # Print SQL statements
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
