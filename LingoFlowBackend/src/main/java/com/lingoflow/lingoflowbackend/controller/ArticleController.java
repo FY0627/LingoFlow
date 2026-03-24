@@ -5,6 +5,7 @@ import com.lingoflow.lingoflowbackend.common.Result;
 import com.lingoflow.lingoflowbackend.model.dto.ArticleGenerateRequest;
 import com.lingoflow.lingoflowbackend.model.vo.ArticleVO;
 import com.lingoflow.lingoflowbackend.service.ArticleService;
+import com.lingoflow.lingoflowbackend.model.dto.TranslateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,5 +59,15 @@ public class ArticleController {
         Long userId = (Long) request.getAttribute("userId");
         ArticleVO articleVO = articleService.getArticleDetail(userId, id);
         return Result.success(articleVO);
+    }
+
+    /**
+     * 划词即时翻译
+     */
+    @PostMapping("/translate")
+    public Result<String> translateWord(@RequestBody TranslateRequest request) {
+        // 这个接口比较轻量，不涉及存数据库，可以直接返回字符串
+        String translation = articleService.translateWord(request);
+        return Result.success(translation);
     }
 }

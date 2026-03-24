@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.lingoflow.lingoflowbackend.model.dto.ArticleGenerateRequest;
 import com.lingoflow.lingoflowbackend.model.entity.Article;
 import com.lingoflow.lingoflowbackend.model.vo.ArticleVO;
+import com.lingoflow.lingoflowbackend.model.dto.TranslateRequest;
 
 public interface ArticleService extends IService<Article> {
 
@@ -26,4 +27,8 @@ public interface ArticleService extends IService<Article> {
      */
     ArticleVO getArticleDetail(Long userId, Long articleId);
 
+    /**
+     * 划词即时翻译
+     */
+    String translateWord(TranslateRequest request);
 }

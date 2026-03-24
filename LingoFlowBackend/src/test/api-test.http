@@ -88,3 +88,13 @@ Content-Type: application/json
   "translation": "利用、控制",
   "contextSentence": "that harnesses the laws of quantum mechanics"
 }
+
+### 划词即时翻译
+POST http://localhost:8080/api/article/translate
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "word": "harnesses",
+  "contextSentence": "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems."
+}

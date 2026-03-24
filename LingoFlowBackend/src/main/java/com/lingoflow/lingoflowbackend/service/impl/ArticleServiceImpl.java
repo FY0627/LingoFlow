@@ -10,6 +10,7 @@ import com.lingoflow.lingoflowbackend.model.entity.Article;
 import com.lingoflow.lingoflowbackend.model.entity.Vocabulary;
 import com.lingoflow.lingoflowbackend.model.vo.ArticleVO;
 import com.lingoflow.lingoflowbackend.service.ArticleService;
+import com.lingoflow.lingoflowbackend.model.dto.TranslateRequest;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.ChatClient;
@@ -175,6 +176,33 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         vo.setCreateTime(article.getCreateTime());
 
         return vo;
+    }
+
+    @Override
+    public String translateWord(TranslateRequest request) {
+        String word = request.getWord();
+        String contextSentence = request.getContextSentence();
+
+        // 构建一个非常精简轻量的 Prompt，要求大模型“闭嘴”，只输出翻译结果
+        String prompt = String.format("""
+            你是一个专业的英语翻译助手。
+            请结合以下语境，将指定的单词或短语翻译成中文。
+            
+            【要求】
+            你必须且只能返回最贴切的中文释义（几个字即可），绝对不要返回任何多余的解释、拼音、标点符号或其他废话！
+            
+            【单词/短语】: %s
+            【语境原句】: %s
+            """, word, contextSentence);
+
+        try {
+            String translation = chatClient.call(prompt);
+            // 清理可能带有的首尾空格或多余的换行
+            return translation.trim();
+        } catch (Exception e) {
+            log.error("划词翻译调用大模型失败", e);
+            throw new RuntimeException("翻译服务繁忙，请稍后再试");
+        }
     }
 
     // ================== 内部辅助类，专门用来接收 AI 返回的 JSON 结构 ==================
