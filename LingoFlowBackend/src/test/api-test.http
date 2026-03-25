@@ -114,7 +114,7 @@ Content-Type: application/json
   "userAnswers": [
     {
       "question": "What property of qubits makes them different from bits in traditional computers?",
-      "options": [
+      "originalOptions": [
         "A. Qubits can only be 0 or 1.",
         "B. Qubits can be 0, 1, or both at the same time.",
         "C. Qubits have been in use for over five decades.",
