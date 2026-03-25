@@ -9,7 +9,7 @@ POST http://localhost:8080/api/user/register
 Content-Type: application/json
 
 {
-  "username": "lingo_master",
+  "username": "lingo_master1",
   "password": "password123",
   "targetLanguage": "EN",
   "currentLevel": "V2000"
@@ -23,7 +23,7 @@ POST http://localhost:8080/api/user/login
 Content-Type: application/json
 
 {
-  "username": "lingo_master",
+  "username": "lingo_master1",
   "password": "password123"
 }
 
@@ -53,7 +53,7 @@ Authorization: Bearer {{jwt_token}}
 Content-Type: application/json
 
 {
-  "difficultyLevel": "PTE 65分水平",
+  "difficultyLevel": "PTE 45分水平",
   "originalText": "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. These machines are very different from the classical computers that have been around for more than half a century. While classical computers rely on bits, which can be either 0 or 1, quantum computers use quantum bits, or qubits. Qubits can exist in a state of 0, 1, or both simultaneously, a phenomenon known as superposition."
 }
 
@@ -98,3 +98,34 @@ Content-Type: application/json
   "word": "harnesses",
   "contextSentence": "Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems."
 }
+
+### 1. 动态生成课后自测题
+# 这一步 AI 会现编 3 道题给你，注意复制其中一道题和你的随便选的一个答案，留着下一步用！
+POST http://localhost:8080/api/quiz/generate/3
+Authorization: Bearer {{jwt_token}}
+
+### 2. 提交答案，获取判题结果与名师解析
+POST http://localhost:8080/api/quiz/submit
+Authorization: Bearer {{jwt_token}}
+Content-Type: application/json
+
+{
+  "articleId": 3,
+  "userAnswers": [
+    {
+      "question": "What property of qubits makes them different from bits in traditional computers?",
+      "options": [
+        "A. Qubits can only be 0 or 1.",
+        "B. Qubits can be 0, 1, or both at the same time.",
+        "C. Qubits have been in use for over five decades.",
+        "D. Qubits are more complex to understand."
+      ],
+      "selectedOption": "A. Qubits can only be 0 or 1."
+    }
+  ]
+}
+
+### 一键导出个人数据 (保存为文件)
+# 注意：在 IDEA 中运行这个接口时，它会把 JSON 打印在控制台，或者提示你 Save Response
+GET http://localhost:8080/api/data/export
+Authorization: Bearer {{jwt_token}}
