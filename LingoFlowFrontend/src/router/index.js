@@ -1,17 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import Dashboard from '../views/Dashboard.vue' // 【新增】引入工作台
 
 const routes = [
   {
     path: '/',
-    redirect: '/login' // 访问根目录直接跳到登录页
+    redirect: '/login'
   },
   {
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register
+  },
+  {
+    path: '/dashboard', // 【新增】工作台路由
+    name: 'Dashboard',
+    component: Dashboard
   }
-  // 以后你的注册页、后台主页都在这里往下加
 ]
 
 const router = createRouter({
