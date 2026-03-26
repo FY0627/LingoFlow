@@ -152,7 +152,7 @@
             </div>
           </div>
 
-          <div class="tab-content" v-show="!isMobile || (isMobile && true)" :style="isMobile ? 'padding: 15px;' : ''">
+          <div class="tab-content" v-show="activeTab === 'quiz' || isMobile" :style="isMobile ? 'padding: 15px;' : ''">
             <h3 v-if="isMobile" class="mobile-section-title">3. 课后自测</h3>
             
             <div v-if="quizList.length === 0" class="empty-state">

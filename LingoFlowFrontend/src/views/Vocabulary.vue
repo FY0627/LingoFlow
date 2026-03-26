@@ -73,6 +73,7 @@
               🗑️ 移除
             </button>
           </div>
+
         </div>
       </div>
 
@@ -89,12 +90,10 @@ const router = useRouter()
 const isLoading = ref(true)
 const vocabList = ref([])
 
-// 初始化加载生词列表
 const fetchVocabularies = async () => {
   isLoading.value = true
   try {
     const res = await getVocabularyListApi()
-    // 【修复】：兼容后端返回的是纯 List 或者 Page 分页对象 (res.records)
     vocabList.value = res.records ? res.records : (res || [])
   } catch (error) {
     console.error('获取生词本失败', error)
@@ -103,62 +102,36 @@ const fetchVocabularies = async () => {
   }
 }
 
-// 标为已掌握
-const markMastered = async (vocab) => {
-  try {
-    // 【修复】：传递状态 1 代表已掌握
-    await updateVocabularyStatusApi(vocab.id, 1)
-    vocab.mastered = 1 // 前端同步变灰
-  } catch (error) {
-    alert('状态更新失败！请确保后端接口接收的是 1')
-  }
-}
-
 onMounted(() => {
   fetchVocabularies()
 })
 
-// 导航跳转
 const goToDashboard = () => {
   router.push('/dashboard')
 }
 
-// 移除生词
 const removeVocab = async (id) => {
   if (!confirm('确定要将该生词移出你的专属词库吗？')) return
-  
   try {
     await deleteVocabularyApi(id)
-    // 前端无刷新删除
     vocabList.value = vocabList.value.filter(v => v.id !== id)
   } catch (error) {
     alert('移除失败！')
   }
 }
 
-// 标为已掌握
 const markMastered = async (vocab) => {
   try {
-    // 假设后端接受 status 字段
-    await updateVocabularyStatusApi(vocab.id, 'MASTERED')
-    vocab.status = 'MASTERED'
+    await updateVocabularyStatusApi(vocab.id, 1)
+    vocab.mastered = 1
   } catch (error) {
-    alert('状态更新失败！')
+    alert('状态更新失败！请检查后端')
   }
-}
-
-// 模拟数据 (如果后端还没准备好，可以解除上方的 mockData() 注释看 UI 效果)
-const mockData = () => {
-  vocabList.value = [
-    { id: 1, word: 'harness', translation: 'v. 利用，控制；给...套上挽具\nn. 马具，挽具', contextSentence: 'Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics.', status: 'LEARNING' },
-    { id: 2, word: 'emerging', translation: 'adj. 新兴的，出现的', contextSentence: 'Quantum computing is a rapidly-emerging technology.', status: 'LEARNING' },
-    { id: 3, word: 'mechanics', translation: 'n. 力学，机械学；基本原理', contextSentence: '...harnesses the laws of quantum mechanics to solve problems...', status: 'MASTERED' }
-  ]
 }
 </script>
 
 <style scoped>
-/* =========== 基础布局样式 (同 Dashboard) =========== */
+/* =========== 基础布局样式 =========== */
 .dashboard-layout { display: flex; height: 100vh; width: 100vw; background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow: hidden;}
 .mobile-header { display: none; }
 .sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; z-index: 10;}
@@ -178,7 +151,6 @@ const mockData = () => {
 .page-subtitle { font-size: 15px; color: #6b7280; margin: 0; }
 .page-subtitle strong { color: #111827; }
 
-/* 状态展示 */
 .status-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; color: #6b7280; }
 .empty-icon { font-size: 60px; margin-bottom: 20px; }
 .empty-state h2 { color: #111827; margin-bottom: 10px; }
@@ -186,31 +158,13 @@ const mockData = () => {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* =========== 网格卡片系统 =========== */
-.vocab-grid {
-  display: grid;
-  /* 响应式网格：最少 300px 宽，自动填充剩余空间 */
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  padding-bottom: 40px;
-}
-
-.vocab-card {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+.vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; padding-bottom: 40px; }
+.vocab-card { background: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
 .vocab-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-/* 掌握状态的样式变灰 */
 .vocab-card.mastered { opacity: 0.7; background: #f9fafb; border-color: #d1d5db; }
 
 .card-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
 .word { font-size: 24px; font-weight: 800; color: #111827; margin: 0; }
-.phonetic { font-size: 14px; color: #9ca3af; font-family: monospace; }
 
 .card-translation { font-size: 15px; color: #4b5563; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; flex: 1;}
 
@@ -224,8 +178,6 @@ const mockData = () => {
 .check-btn:hover { background: #dcfce7; }
 .delete-btn { background: #fef2f2; color: #dc2626; }
 .delete-btn:hover { background: #fee2e2; }
-
-/* 全局按钮 */
 .primary-btn { padding: 12px; background: #111827; color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .primary-btn:hover { background: #374151; }
 
@@ -246,7 +198,6 @@ const mockData = () => {
   .main-content { padding: 20px 15px; padding-bottom: 80px; }
   .page-title { font-size: 24px; }
   
-  /* 手机端一列展示 */
   .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
 }
 </style>
