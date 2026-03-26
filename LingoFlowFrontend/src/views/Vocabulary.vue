@@ -50,11 +50,10 @@
       </div>
 
       <div v-else class="vocab-grid">
-        <div v-for="vocab in vocabList" :key="vocab.id" class="vocab-card" :class="{ 'mastered': vocab.status === 'MASTERED' }">
+        <div v-for="vocab in vocabList" :key="vocab.id" class="vocab-card" :class="{ 'mastered': vocab.mastered === 1 }">
           
           <div class="card-top">
             <h2 class="word">{{ vocab.word }}</h2>
-            <span class="phonetic">/{{ vocab.word }}/</span>
           </div>
 
           <div class="card-translation">
@@ -63,20 +62,17 @@
 
           <div class="card-context">
             <span class="context-label">语境回忆：</span>
-            <p class="context-sentence">
-              {{ vocab.contextSentence }}
-            </p>
+            <p class="context-sentence">{{ vocab.contextSentence }}</p>
           </div>
 
           <div class="card-actions">
-            <button class="action-icon-btn check-btn" title="标为已掌握" @click="markMastered(vocab)">
+            <button v-if="vocab.mastered !== 1" class="action-icon-btn check-btn" title="标为已掌握" @click="markMastered(vocab)">
               ✅ 掌握
             </button>
             <button class="action-icon-btn delete-btn" title="移除生词" @click="removeVocab(vocab.id)">
               🗑️ 移除
             </button>
           </div>
-
         </div>
       </div>
 
@@ -98,13 +94,23 @@ const fetchVocabularies = async () => {
   isLoading.value = true
   try {
     const res = await getVocabularyListApi()
-    vocabList.value = res || []
+    // 【修复】：兼容后端返回的是纯 List 或者 Page 分页对象 (res.records)
+    vocabList.value = res.records ? res.records : (res || [])
   } catch (error) {
     console.error('获取生词本失败', error)
-    // 【开发阶段模拟数据】如果你后端还没跑通，取消下面这行的注释看看效果
-    // mockData() 
   } finally {
     isLoading.value = false
+  }
+}
+
+// 标为已掌握
+const markMastered = async (vocab) => {
+  try {
+    // 【修复】：传递状态 1 代表已掌握
+    await updateVocabularyStatusApi(vocab.id, 1)
+    vocab.mastered = 1 // 前端同步变灰
+  } catch (error) {
+    alert('状态更新失败！请确保后端接口接收的是 1')
   }
 }
 

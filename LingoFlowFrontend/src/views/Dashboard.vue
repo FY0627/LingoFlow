@@ -32,6 +32,7 @@
     <div class="main-content">
       
       <div class="editor-section">
+        
         <div class="editor-card">
           <div class="card-header flex-between">
             <span class="card-title">1. 输入原文</span>
@@ -75,34 +76,34 @@
 
           <div class="mobile-rewrite-actions" v-if="isMobile">
             <select v-model="difficulty" class="mobile-select">
-                <optgroup label="国内考试">
-                  <option value="中考英语水平">中考英语</option>
-                  <option value="高考英语水平">高考英语</option>
-                  <option value="大学英语四级(CET4)">CET 4 (四级)</option>
-                  <option value="大学英语六级(CET6)">CET 6 (六级)</option>
-                  <option value="考研英语水平">考研英语</option>
-                  <option value="英语专业八级(TEM8)">专八 (TEM8)</option>
-                </optgroup>
-                <optgroup label="PTE 考试">
-                  <option value="PTE 45分水平">PTE 45分 (基础)</option>
-                  <option value="PTE 58分水平">PTE 58分 (常用)</option>
-                  <option value="PTE 65分水平">PTE 65分 (进阶)</option>
-                  <option value="PTE 79分水平">PTE 79分 (高阶)</option>
-                  <option value="PTE 90分水平">PTE 90分 (满分)</option>
-                </optgroup>
-                <optgroup label="雅思 (IELTS)">
-                  <option value="雅思 5.5分水平">雅思 5.5分</option>
-                  <option value="雅思 6.0分水平">雅思 6.0分</option>
-                  <option value="雅思 6.5分水平">雅思 6.5分</option>
-                  <option value="雅思 7.0分水平">雅思 7.0分</option>
-                  <option value="雅思 8.0分水平">雅思 8.0分</option>
-                </optgroup>
-                <optgroup label="托福 (TOEFL)">
-                  <option value="托福 80分水平">托福 80分</option>
-                  <option value="托福 90分水平">托福 90分</option>
-                  <option value="托福 100分水平">托福 100分</option>
-                  <option value="托福 110分水平">托福 110+分</option>
-                </optgroup>
+              <optgroup label="国内考试">
+                <option value="中考英语水平">中考英语</option>
+                <option value="高考英语水平">高考英语</option>
+                <option value="大学英语四级(CET4)">CET 4 (四级)</option>
+                <option value="大学英语六级(CET6)">CET 6 (六级)</option>
+                <option value="考研英语水平">考研英语</option>
+                <option value="英语专业八级(TEM8)">专八 (TEM8)</option>
+              </optgroup>
+              <optgroup label="PTE 考试">
+                <option value="PTE 45分水平">PTE 45分 (基础)</option>
+                <option value="PTE 58分水平">PTE 58分 (常用)</option>
+                <option value="PTE 65分水平">PTE 65分 (进阶)</option>
+                <option value="PTE 79分水平">PTE 79分 (高阶)</option>
+                <option value="PTE 90分水平">PTE 90分 (满分)</option>
+              </optgroup>
+              <optgroup label="雅思 (IELTS)">
+                <option value="雅思 5.5分水平">雅思 5.5分</option>
+                <option value="雅思 6.0分水平">雅思 6.0分</option>
+                <option value="雅思 6.5分水平">雅思 6.5分</option>
+                <option value="雅思 7.0分水平">雅思 7.0分</option>
+                <option value="雅思 8.0分水平">雅思 8.0分</option>
+              </optgroup>
+              <optgroup label="托福 (TOEFL)">
+                <option value="托福 80分水平">托福 80分</option>
+                <option value="托福 90分水平">托福 90分</option>
+                <option value="托福 100分水平">托福 100分</option>
+                <option value="托福 110分水平">托福 110+分</option>
+              </optgroup>
             </select>
             <button class="mobile-action-btn" :disabled="isGenerating" @click="handleRewrite">
               {{ isGenerating ? '重写中...' : '开始 i+1' }}
@@ -118,10 +119,12 @@
           </div>
           <textarea class="textarea-input result-area" v-model="resultText" readonly @mouseup="handleTextSelection" @touchend="handleTextSelection" placeholder="文章将展示在这里..."></textarea>
         </div>
+        
       </div>
 
       <div class="tools-section">
         <div class="tools-card">
+          
           <div class="tab-header desktop-only">
             <div class="tab-item" :class="{ active: activeTab === 'dict' }" @click="activeTab = 'dict'">划词翻译</div>
             <div class="tab-item" :class="{ active: activeTab === 'quiz' }" @click="activeTab = 'quiz'">AI 出题</div>
@@ -137,7 +140,9 @@
                 <h2 class="word-text">{{ selectedWord }}</h2>
               </div>
               <div class="translation-box">
-                <p class="trans-item">{{ isTranslating ? 'AI 翻译中...' : translationResult }}</p>
+                <p class="trans-item" style="white-space: pre-wrap; line-height: 1.6;">
+                  {{ isTranslating ? 'AI 翻译中...' : translationResult }}
+                </p>
               </div>
               <div class="context-box">
                 <span class="context-label">原句：</span>
@@ -169,7 +174,7 @@
                   <p class="question">{{ index + 1 }}. {{ item.question }}</p>
                   <div class="options">
                     <label v-for="(opt, oIndex) in item.options" :key="oIndex" class="option-label" :class="getOptionClass(index, opt)">
-                      <input type="radio" :name="'q'+index" :value="opt" v-model="userAnswers[index]" :disabled="quizFeedback !== null">
+                      <input type="radio" :name="'q'+index" :value="opt" v-model="userAnswers[index]" :disabled="quizFeedback !== null" />
                       <span class="opt-text">{{ opt }}</span>
                     </label>
                   </div>
@@ -199,7 +204,9 @@
         <button class="close-btn" @click="showMobileDict = false">✖</button>
       </div>
       <div class="translation-box">
-        <p class="trans-item">{{ isTranslating ? 'AI 翻译中...' : translationResult }}</p>
+        <p class="trans-item" style="white-space: pre-wrap; line-height: 1.6;">
+          {{ isTranslating ? 'AI 翻译中...' : translationResult }}
+        </p>
       </div>
       <button class="add-vocab-btn mobile-add-btn" @click="handleAddVocab" :disabled="isTranslating">➕ 存入生词本</button>
     </div>
@@ -210,19 +217,17 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
 import { generateQuizApi, submitQuizApi } from '../api/quiz'
-import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const isMobile = ref(false)
 const checkMobile = () => { isMobile.value = window.innerWidth <= 768 }
-const router = useRouter()
 
 const showMobileDict = ref(false)
 const mobilePopupStyle = ref({})
-const goToVocabulary = () => {
-  router.push('/vocabulary')
-}
 
 onMounted(() => {
   checkMobile()
@@ -249,6 +254,10 @@ const userAnswers = ref({})
 const quizFeedback = ref(null)   
 const isGeneratingQuiz = ref(false)
 const isGrading = ref(false)
+
+const goToVocabulary = () => {
+  router.push('/vocabulary')
+}
 
 const handleRewrite = async () => {
   if (!originalText.value.trim()) return alert('请先输入原文！')
@@ -339,6 +348,7 @@ const submitQuiz = async () => {
       question: q.question, originalOptions: q.options, selectedOption: userAnswers.value[index]
     }))
     const res = await submitQuizApi({ articleId: currentArticleId.value, userAnswers: answersArray })
+    
     const correctCount = res.feedbacks.filter(f => f.isCorrect).length
     res.score = Math.round((correctCount / res.feedbacks.length) * 100)
     quizFeedback.value = res 
@@ -357,7 +367,6 @@ const handleExportData = () => alert('🚀 准备下载...')
 </script>
 
 <style scoped>
-/* =========== 基础布局样式 =========== */
 .dashboard-layout { display: flex; height: 100vh; width: 100vw; background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow: hidden;}
 .mobile-header { display: none; }
 
@@ -371,8 +380,9 @@ const handleExportData = () => alert('🚀 准备下载...')
 .avatar { width: 40px; height: 40px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
 .main-content { flex: 1; display: flex; padding: 24px; gap: 24px; overflow: hidden; }
-.editor-section { flex: 1; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
-.editor-card { flex: 1; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; }
+.editor-section { flex: 1; display: flex; flex-direction: column; gap: 24px; min-width: 0; min-height: 0; }
+.editor-card { flex: 1; background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
 .result-card { border: 2px solid #e5e7eb; }
 .card-header { padding: 16px 20px; border-bottom: 1px solid #f3f4f6; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
@@ -381,10 +391,9 @@ const handleExportData = () => alert('🚀 准备下载...')
 .mini-select { padding: 6px 10px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 13px; background: #f9fafb; outline:none; max-width: 140px;}
 .action-btn { padding: 6px 14px; background: #111827; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-.textarea-input { flex: 1; width: 100%; border: none; resize: none; padding: 20px; font-size: 16px; line-height: 1.8; color: #374151; background: transparent; outline: none; box-sizing: border-box; }
+.textarea-input { flex: 1; width: 100%; border: none; resize: none; padding: 20px; font-size: 16px; line-height: 1.8; color: #374151; background: transparent; outline: none; box-sizing: border-box; overflow-y: auto; }
 .result-area { background-color: #fafafa; font-family: 'Georgia', serif; font-size: 17px; }
 
-/* ======== 右侧：辅助工具面板 ======== */
 .tools-section { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; }
 .tools-card { background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; height: 100%; overflow: hidden;}
 .tab-header { display: flex; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb; }
@@ -392,7 +401,6 @@ const handleExportData = () => alert('🚀 准备下载...')
 .tab-item.active { color: #111827; background-color: #ffffff; border-bottom: 2px solid #111827; }
 .tab-content { padding: 24px; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
 
-/* ======== 字典/测验 UI ======== */
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; color: #9ca3af; gap: 15px; margin-top: 50px;}
 .empty-icon { font-size: 40px; }
 .dict-result { display: flex; flex-direction: column; gap: 15px; }
@@ -423,8 +431,6 @@ const handleExportData = () => alert('🚀 准备下载...')
 .primary-btn { padding: 12px; background: #111827; color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; width: 100%;}
 .outline-btn { padding: 12px; background: white; color: #111827; border-radius: 8px; border: 1px solid #111827; font-weight: 600; cursor: pointer; width: 100%;}
 
-
-/* ================= 核心：移动端适配 (小于 768px 生效) ================= */
 @media (max-width: 768px) {
   .dashboard-layout { flex-direction: column; overflow-y: auto;} 
   .desktop-only { display: none !important; }
@@ -433,16 +439,13 @@ const handleExportData = () => alert('🚀 准备下载...')
   .mobile-title { font-weight: 700; font-size: 16px;}
   .mobile-header .logo-box { margin: 0; width: 32px; height: 32px; font-size: 14px;}
 
-  /* 🎯 底部导航 Tab：完美均分布局 */
   .sidebar { width: 100%; height: 65px; padding: 0; flex-direction: row; border-right: none; border-top: 1px solid #e5e7eb; position: fixed; bottom: 0; z-index: 20; background: #ffffff;}
   .top-section { width: 100%; display: flex; align-items: center; justify-content: center; height: 100%; }
-  /* 使用 space-between 拉开距离，并给左右留出 40px 的 padding 保证不贴边 */
   .nav-menu { flex-direction: row; justify-content: space-between; padding: 0 40px; width: 100%; margin: 0; gap: 0; }
   .nav-item { flex-direction: column; gap: 4px; flex: 1; align-items: center; }
 
   .main-content { flex-direction: column; overflow: visible; padding: 15px; padding-bottom: 80px; gap: 15px;}
   
-  /* 🎯 手机端专属：全宽的难度选择器和按钮 */
   .mobile-rewrite-actions { display: flex; gap: 10px; padding: 0 15px 15px 15px; border-bottom: 1px solid #f3f4f6;}
   .mobile-select { flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 14px; background: #f9fafb; outline:none; }
   .mobile-action-btn { flex: 1; padding: 12px; background: #111827; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -455,13 +458,9 @@ const handleExportData = () => alert('🚀 准备下载...')
   .mobile-section-title { font-size: 16px; margin: 10px 0 15px 0; color: #111;}
 }
 
-/* ================= 移动端专属：浮动翻译弹窗 ================= */
 .mobile-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99; }
-.mobile-dict-popup {
-  position: fixed; left: 5%; width: 90%; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 15px; z-index: 100; border: 1px solid #e5e7eb; animation: slideUp 0.2s ease-out; box-sizing: border-box;
-}
+.mobile-dict-popup { position: fixed; left: 5%; width: 90%; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 15px; z-index: 100; border: 1px solid #e5e7eb; animation: slideUp 0.2s ease-out; box-sizing: border-box; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 .popup-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 10px;}
 .popup-header .word-text { font-size: 20px; margin: 0; }
 .close-btn { background: none; border: none; font-size: 18px; color: #9ca3af; padding: 0;}
