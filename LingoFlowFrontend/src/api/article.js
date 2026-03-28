@@ -20,15 +20,12 @@ export const addVocabularyApi = (data) => {
 // =====================================
 
 // 4. 获取历史文章列表
-export const getArticleListApi = () => {
-  return request({
-    url: '/api/article/list', // 假设后端的查询接口是这个
-    method: 'get'
-  })
+export const getArticleListApi = (current = 1, size = 10) => {
+  return request({ url: `/api/article/list?current=${current}&size=${size}`, method: 'get' })
 }
 
 // 5. 删除历史文章 (可选)
-export const deleteArticleApi = (id) => request({ 
-  url: `/api/article/delete/${id}`, 
-  method: 'delete' 
+export const deleteArticleApi = (id) => request({
+  url: `/api/article/delete/${id}`,
+  method: 'delete'
 })

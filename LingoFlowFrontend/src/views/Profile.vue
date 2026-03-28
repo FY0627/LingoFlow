@@ -2,7 +2,7 @@
   <div class="dashboard-layout">
     
     <div class="mobile-header">
-      <div class="logo-box">LF</div>
+      <div class="logo-box" @click="router.push('/dashboard')" style="font-size: 12px;">返回</div>
       <span class="mobile-title">用户中心</span>
     </div>
 
@@ -31,7 +31,7 @@
 
     <div class="main-content">
       <div class="page-header">
-        <h1 class="page-title">👤 个人中心</h1>
+        <h1 class="page-title">个人中心</h1>
         <p class="page-subtitle">管理你的学习数据资产与账号安全。</p>
       </div>
 

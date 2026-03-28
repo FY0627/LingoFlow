@@ -2,7 +2,7 @@
   <div class="dashboard-layout">
 
     <div class="mobile-header">
-      <div class="logo-box export-btn" @click="handleExportData">LF</div>
+      <div class="logo-box" @click="router.push('/profile')" title="用户中心">LF</div>
       <span class="mobile-title">LingoFlow 工作台</span>
     </div>
 
@@ -224,20 +224,14 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
 import { generateQuizApi, submitQuizApi } from '../api/quiz'
-import { downloadUserData } from '../api/user'
-import { importDataApi } from '../api/user'
 
 const router = useRouter()
 
 const isMobile = ref(false)
 const checkMobile = () => { isMobile.value = window.innerWidth <= 768 }
-const goToHistory = () => {
-  router.push('/history')
-}
 
 const showMobileDict = ref(false)
 const mobilePopupStyle = ref({})
-const fileInput = ref(null)
 
 onMounted(() => {
   checkMobile()

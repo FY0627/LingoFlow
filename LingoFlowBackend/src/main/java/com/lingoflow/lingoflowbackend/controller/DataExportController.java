@@ -1,6 +1,6 @@
 package com.lingoflow.lingoflowbackend.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lingoflow.lingoflowbackend.common.Result;
 import com.lingoflow.lingoflowbackend.model.dto.LingoDataDTO;
@@ -10,20 +10,11 @@ import com.lingoflow.lingoflowbackend.service.ArticleService;
 import com.lingoflow.lingoflowbackend.service.VocabularyService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/data")
@@ -36,68 +27,97 @@ public class DataExportController {
     private VocabularyService vocabularyService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper; // 注入即可，不需要在下面 new
 
     /**
      * 一键导出用户的全部阅读历史和生词本为 JSON 文件
      */
     @GetMapping("/export")
-    public void exportUserData(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Long userId = (Long) request.getAttribute("userId");
+    public Result<LingoDataDTO> exportUserData(HttpServletRequest request) {
+        // 【修复1】绝大多数项目的 JWT 拦截器在验证通过后，都会把解析出的 userId 塞进 request 域中
+        // 这样可以完美绕开 JwtUtils 方法名不匹配的报错！
+        Object userIdObj = request.getAttribute("userId");
+        if (userIdObj == null) {
+            return Result.error("导出失败，请检查登录状态或Token！");
+        }
+        Long currentUserId = Long.valueOf(userIdObj.toString());
 
-        // 1. 一次性查出该用户所有的文章记录
-        LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();
-        articleWrapper.eq(Article::getUserId, userId).orderByDesc(Article::getCreateTime);
-        List<Article> articles = articleService.list(articleWrapper);
+        // 查询该账号下的数据
+        List<Article> myArticles = articleService.lambdaQuery().eq(Article::getUserId, currentUserId).list();
+        List<Vocabulary> myVocabs = vocabularyService.lambdaQuery().eq(Vocabulary::getUserId, currentUserId).list();
 
-        // 2. 一次性查出该用户所有的生词记录
-        LambdaQueryWrapper<Vocabulary> vocabWrapper = new LambdaQueryWrapper<>();
-        vocabWrapper.eq(Vocabulary::getUserId, userId).orderByDesc(Vocabulary::getCreateTime);
-        List<Vocabulary> vocabularies = vocabularyService.list(vocabWrapper);
+        LingoDataDTO dataDTO = new LingoDataDTO();
+        dataDTO.setArticles(myArticles);
+        dataDTO.setVocabularies(myVocabs);
 
-        // 3. 将数据打包进一个 Map 结构中
-        Map<String, Object> exportData = new HashMap<>();
-        exportData.put("exportTime", LocalDateTime.now().toString());
-        exportData.put("totalArticles", articles.size());
-        exportData.put("totalVocabularies", vocabularies.size());
-        exportData.put("articles", articles);
-        exportData.put("vocabularies", vocabularies);
-
-        // 4. 【核心】设置 HTTP 响应头，告诉浏览器这是一个需要下载的附件
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String fileName = "LingoFlow_Data_" + timestamp + ".json";
-
-        response.setContentType("application/json;charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        // Content-Disposition: attachment 是触发浏览器下载框的关键指令
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-
-        // 5. 将组装好的对象转成 JSON 字符串，并直接写入响应流
-        String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(exportData);
-        response.getWriter().write(jsonString);
+        return Result.success(dataDTO);
     }
+
+    /**
+     * 导入数据 (洗白并重新绑定)
+     */
     @PostMapping("/import")
-    public Result<Boolean> importUserData(@RequestParam("file") MultipartFile file) {
+    public Result<Boolean> importUserData(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         if (file.isEmpty()) {
-            return Result.error(400, "上传的文件为空！");
+            return Result.error("上传的文件为空！");
         }
 
         try {
-            // 1. 将接收到的 JSON 文件流读取为后端的 DTO 对象
-            ObjectMapper objectMapper = new ObjectMapper();
-            // LingoDataDTO 是你之前写导出功能时用来包裹所有数据的实体类
-            LingoDataDTO importData = objectMapper.readValue(file.getInputStream(), LingoDataDTO.class);
+            Object userIdObj = request.getAttribute("userId");
+            if (userIdObj == null) {
+                return Result.error("导入失败，请先登录！");
+            }
+            Long currentUserId = Long.valueOf(userIdObj.toString());
 
-            // 2. 这里写你的业务逻辑：
-            // 比如清空当前用户的数据，然后把 importData 里面的 List<Article> 和 List<Vocabulary>
-            // 重新通过 articleService.saveBatch() 塞进数据库。
-            // ... 你的导入逻辑 ...
+            // 1. 读取整个 JSON 文件为树状结构
+            JsonNode rootNode = objectMapper.readTree(file.getInputStream());
+            LingoDataDTO importData;
+
+            // 2. 【核心修复】智能剥壳：如果文件被 Result 包裹，就提取 "data" 里面的内容
+            if (rootNode.has("data")) {
+                importData = objectMapper.treeToValue(rootNode.get("data"), LingoDataDTO.class);
+            } else {
+                // 如果没有包裹，直接解析 (兼容纯净版 JSON)
+                importData = objectMapper.treeToValue(rootNode, LingoDataDTO.class);
+            }
+
+            // 防御性判断，防止 importData 依然是 null
+            if (importData == null) {
+                return Result.error("文件内容为空或格式不正确！");
+            }
+
+            // 3. 【核心更新】：先清空该账号的旧数据（实现覆盖逻辑），再插入新数据
+
+            // --- 处理文章历史 ---
+            // 覆盖第一步：直接抹除当前账号所有的旧文章
+            articleService.lambdaUpdate().eq(Article::getUserId, currentUserId).remove();
+            // 覆盖第二步：保存导入的新文章
+            if (importData.getArticles() != null && !importData.getArticles().isEmpty()) {
+                for (Article article : importData.getArticles()) {
+                    article.setId(null); // 清空旧主键
+                    article.setUserId(currentUserId); // 绑定新账号
+                }
+                articleService.saveBatch(importData.getArticles());
+            }
+
+            // --- 处理生词本 ---
+            // 覆盖第一步：直接抹除当前账号所有的旧生词
+            vocabularyService.lambdaUpdate().eq(Vocabulary::getUserId, currentUserId).remove();
+            // 覆盖第二步：保存导入的新生词
+            if (importData.getVocabularies() != null && !importData.getVocabularies().isEmpty()) {
+                for (Vocabulary vocab : importData.getVocabularies()) {
+                    vocab.setId(null);
+                    vocab.setUserId(currentUserId);
+                }
+                vocabularyService.saveBatch(importData.getVocabularies());
+            }
+
+            // 如果有错题本 (Quiz)，也是一样的逻辑先 remove 再 saveBatch...
 
             return Result.success(true);
-
         } catch (Exception e) {
             e.printStackTrace();
-            return Result.error(500, "JSON解析失败或导入失败: " + e.getMessage());
+            return Result.error("导入解析失败: " + e.getMessage());
         }
     }
 }

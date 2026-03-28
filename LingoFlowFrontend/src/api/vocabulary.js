@@ -1,6 +1,8 @@
 import request from './request'
 
-export const getVocabularyListApi = () => request({ url: '/api/vocabulary/list', method: 'get' })
+export const getVocabularyListApi = (current = 1, size = 10) => {
+  return request({ url: `/api/vocabulary/list?current=${current}&size=${size}`, method: 'get' })
+}
 
 // 修复：确保使用标准的 restful 传参 (或者根据你的后端改为 post)
 export const deleteVocabularyApi = (id) => request({ url: `/api/vocabulary/delete/${id}`, method: 'delete' })
