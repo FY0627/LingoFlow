@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/article")
@@ -69,5 +70,18 @@ public class ArticleController {
         // 这个接口比较轻量，不涉及存数据库，可以直接返回字符串
         String translation = articleService.translateWord(request);
         return Result.success(translation);
+    }
+
+    /**
+     * 删除历史生成的阅读文章
+     */
+    @DeleteMapping("/delete/{id}")
+    public Result<Boolean> deleteArticle(@PathVariable("id") Long id) {
+        boolean success = articleService.removeById(id);
+        if (success) {
+            return Result.success(true);
+        } else {
+            return Result.error(500, "删除历史文章失败");
+        }
     }
 }

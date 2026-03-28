@@ -4,6 +4,7 @@ import Register from '../views/Register.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Vocabulary from '../views/Vocabulary.vue'
 import History from '../views/History.vue' // 【新增】引入历史页
+import Profile from '../views/Profile.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -11,7 +12,8 @@ const routes = [
   { path: '/register', name: 'Register', component: Register },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard },
   { path: '/vocabulary', name: 'Vocabulary', component: Vocabulary },
-  { path: '/history', name: 'History', component: History } // 【新增】路由配置
+  { path: '/history', name: 'History', component: History },
+  { path: '/profile', name: 'Profile', component: Profile }
 ]
 
 const router = createRouter({

@@ -1,8 +1,6 @@
 <template>
   <div class="dashboard-layout">
 
-    <input type="file" ref="fileInput" accept=".json" style="display: none" @change="handleImportData" />
-
     <div class="mobile-header">
       <div class="logo-box export-btn" @click="handleExportData">LF</div>
       <span class="mobile-title">LingoFlow 工作台</span>
@@ -10,37 +8,24 @@
 
     <div class="sidebar">
       <div class="top-section">
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom: 20px;">
-          <div class="logo-box export-btn desktop-only" title="一键导出数据" @click="handleExportData">📤</div>
-          <div class="logo-box export-btn desktop-only" title="导入 JSON 数据" @click="$refs.fileInput.click()">📥</div>
-        </div>
+        <div class="logo-box desktop-only">LF</div>
         <div class="nav-menu">
-          <div class="nav-item active">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
-              </path>
-            </svg>
+          <div class="nav-item active" @click="router.push('/dashboard')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
             <span>工作台</span>
           </div>
-          <div class="nav-item" @click="goToVocabulary">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-            </svg>
+          <div class="nav-item" @click="router.push('/vocabulary')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
             <span>生词本</span>
           </div>
-          <div class="nav-item" @click="goToHistory">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+          <div class="nav-item" @click="router.push('/history')">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <span>历史</span>
           </div>
         </div>
       </div>
       <div class="bottom-section desktop-only">
-        <div class="avatar">👨‍💻</div>
+        <div class="avatar" @click="router.push('/profile')" title="用户中心">👨‍💻</div>
       </div>
     </div>
 
@@ -277,27 +262,6 @@ onMounted(() => {
   }
 })
 
-// ------------------------------------
-// 【新增】处理文件导入
-// ------------------------------------
-const handleImportData = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  
-  const formData = new FormData()
-  formData.append('file', file) // 这里的 'file' 要和后端 Controller 里接收的参数名一致
-
-  alert('正在将您的记忆档案上传至服务器...')
-  try {
-    await importDataApi(formData)
-    alert('✅ 数据导入成功！刷新页面即可查看。')
-  } catch (error) {
-    alert('❌ 导入失败，请检查文件格式或后端接口。')
-  } finally {
-    // 清空 input，防止选同一个文件不触发 change 事件
-    event.target.value = '' 
-  }
-}
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
@@ -431,17 +395,6 @@ const getOptionClass = (qIndex, optionText) => {
   if (isSelected) return quizFeedback.value.feedbacks[qIndex].isCorrect ? 'correct-choice' : 'wrong-choice'
   return 'disabled-choice'
 }
-
-const handleExportData = async () => {
-  alert('🚀 正在连接记忆宫殿，准备打包您的学习数据...')
-  const success = await downloadUserData()
-  if (success) {
-    // 利用浏览器的原生下载提示，这里其实不需要额外弹窗了
-    console.log('数据已成功开始下载！')
-  } else {
-    alert('❌ 导出失败，请检查后端服务是否正常运行。')
-  }
-}
 </script>
 
 <style scoped>
@@ -458,72 +411,23 @@ const handleExportData = async () => {
   display: none;
 }
 
-.sidebar {
-  width: 80px;
-  background-color: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 0;
-  flex-shrink: 0;
-  z-index: 10;
-}
+/* 修改前：没有间距 */
+/* 修改后：增加 margin-bottom 和 gap，并且加上头像 hover 动画 */
 
-.logo-box {
-  width: 40px;
-  height: 40px;
-  background-color: #111827;
-  color: #ffffff;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  cursor: pointer;
-}
+.sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; z-index: 10;}
+.top-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-.nav-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  width: 100%;
-}
+.logo-box { width: 40px; height: 40px; background-color: #111827; color: #ffffff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; margin-bottom: 60px; }
+.nav-menu { display: flex; flex-direction: column; gap: 36px; width: 100%; }
 
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  color: #9ca3af;
-  cursor: pointer;
-}
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #9ca3af; cursor: pointer; transition: 0.2s;}
+.nav-icon { width: 24px; height: 24px; }
+.nav-item span { font-size: 12px; font-weight: 500; }
+.nav-item:hover { color: #4b5563; }
+.nav-item.active { color: #111827; }
 
-.nav-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.nav-item span {
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.nav-item.active {
-  color: #111827;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  background-color: #f3f4f6;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
+.avatar { width: 40px; height: 40px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent;}
+.avatar:hover, .avatar.active { border-color: #111827; transform: scale(1.05); }
 
 .main-content {
   flex: 1;
