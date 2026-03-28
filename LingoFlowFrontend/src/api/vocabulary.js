@@ -1,27 +1,15 @@
-// src/api/vocabulary.js
 import request from './request'
 
-// 1. 获取当前用户的生词列表
-export const getVocabularyListApi = () => {
-  return request({
-    url: '/api/vocabulary/list',
-    method: 'get'
-  })
-}
+export const getVocabularyListApi = () => request({ url: '/api/vocabulary/list', method: 'get' })
 
-// 2. 移除生词
-export const deleteVocabularyApi = (id) => {
-  return request({
-    url: `/api/vocabulary/delete/${id}`,
-    method: 'delete'
-  })
-}
+// 修复：确保使用标准的 restful 传参 (或者根据你的后端改为 post)
+export const deleteVocabularyApi = (id) => request({ url: `/api/vocabulary/delete/${id}`, method: 'delete' })
 
-// 3. (预留) 更新生词状态，比如标为“已掌握”
+// 修复：把状态和 ID 放在 body 里传给后端
 export const updateVocabularyStatusApi = (id, status) => {
   return request({
     url: '/api/vocabulary/update',
     method: 'put',
-    data: { id, status }
+    data: { id: id, mastered: status } // 确保这里传的是 mastered
   })
 }

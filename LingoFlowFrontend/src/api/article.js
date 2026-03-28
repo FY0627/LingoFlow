@@ -2,27 +2,33 @@ import request from './request'
 
 // 1. 生成 i+1 文章
 export const generateArticleApi = (data) => {
-  return request({
-    url: '/api/article/generate',
-    method: 'post',
-    data // 包含 difficultyLevel, originalText
-  })
+  return request({ url: '/api/article/generate', method: 'post', data })
 }
 
 // 2. 划词翻译
 export const translateWordApi = (data) => {
+  return request({ url: '/api/article/translate', method: 'post', data })
+}
+
+// 3. 加入生词本
+export const addVocabularyApi = (data) => {
+  return request({ url: '/api/vocabulary/add', method: 'post', data })
+}
+
+// =====================================
+// 【新增】阅读历史相关接口
+// =====================================
+
+// 4. 获取历史文章列表
+export const getArticleListApi = () => {
   return request({
-    url: '/api/article/translate',
-    method: 'post',
-    data // 包含 word, contextSentence
+    url: '/api/article/list', // 假设后端的查询接口是这个
+    method: 'get'
   })
 }
 
-// 3. (预留) 加入生词本
-export const addVocabularyApi = (data) => {
-  return request({
-    url: '/api/vocabulary/add',
-    method: 'post',
-    data
-  })
-}
+// 5. 删除历史文章 (可选)
+export const deleteArticleApi = (id) => request({ 
+  url: `/api/article/delete/${id}`, 
+  method: 'delete' 
+})

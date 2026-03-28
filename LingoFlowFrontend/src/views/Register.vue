@@ -41,14 +41,40 @@
               <span class="label">目标语言</span>
               <select class="input-field select-field" v-model="formData.targetLanguage">
                 <option value="EN">英语 (EN)</option>
-                <option value="JP">日语 (JP)</option>
-                <option value="ES">西班牙语 (ES)</option>
               </select>
             </div>
             
             <div class="form-group half-width">
               <span class="label">当前水平</span>
-              <input class="input-field" v-model="formData.currentLevel" type="text" placeholder="如: PTE 65, CET6" />
+              <select class="input-field select-field" v-model="formData.currentLevel" style="padding-left: 5px;">
+                <optgroup label="国内考试">
+                  <option value="中考英语水平">中考英语</option>
+                  <option value="高考英语水平">高考英语</option>
+                  <option value="大学英语四级(CET4)">CET 4 (四级)</option>
+                  <option value="大学英语六级(CET6)">CET 6 (六级)</option>
+                  <option value="考研英语水平">考研英语</option>
+                  <option value="英语专业八级(TEM8)">专八 (TEM8)</option>
+                </optgroup>
+                <optgroup label="PTE 考试">
+                  <option value="PTE 45分水平">PTE 45分 (基础)</option>
+                  <option value="PTE 58分水平">PTE 58分 (常用)</option>
+                  <option value="PTE 65分水平">PTE 65分 (进阶)</option>
+                  <option value="PTE 79分水平">PTE 79分 (高阶)</option>
+                </optgroup>
+                <optgroup label="雅思 (IELTS)">
+                  <option value="雅思 5.5分水平">雅思 5.5分</option>
+                  <option value="雅思 6.0分水平">雅思 6.0分</option>
+                  <option value="雅思 6.5分水平">雅思 6.5分</option>
+                  <option value="雅思 7.0分水平">雅思 7.0分</option>
+                  <option value="雅思 8.0分水平">雅思 8.0分</option>
+                </optgroup>
+                <optgroup label="托福 (TOEFL)">
+                  <option value="托福 80分水平">托福 80分</option>
+                  <option value="托福 90分水平">托福 90分</option>
+                  <option value="托福 100分水平">托福 100分</option>
+                  <option value="托福 110分水平">托福 110+分</option>
+                </optgroup>
+              </select>
             </div>
           </div>
 
@@ -99,6 +125,8 @@ const handleRegister = async () => {
       targetLanguage: formData.targetLanguage,
       currentLevel: formData.currentLevel
     })
+
+    localStorage.setItem('lingoflow_default_difficulty', formData.currentLevel)
     
     alert('注册成功！快去登录吧！')
     router.push('/login') // 注册成功后自动跳回登录页
