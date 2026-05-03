@@ -18,4 +18,8 @@ public interface UserService extends IService<User> {
      * @return JWT Token 字符串
      */
     String login(UserLoginRequest request);
-}
+    /**
+     * 修改密码
+     */
+    void changePassword(Long userId, com.lingoflow.lingoflowbackend.model.dto.ChangePasswordRequest request);
+}

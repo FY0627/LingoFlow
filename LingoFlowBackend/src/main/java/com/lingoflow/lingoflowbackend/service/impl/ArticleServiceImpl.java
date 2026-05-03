@@ -41,48 +41,41 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String originalText = request.getOriginalText();
         String difficultyLevel = request.getDifficultyLevel();
 
-        // 1. 构建极其严密的 Prompt，约束 AI 的行为和输出格式
-        // 告诉 AI：将文本难度精确调整到用户的当前目标（如匹配 PTE 考试要求或特定词汇量层级）
-        // 1. 构建极其严密的 Prompt，约束 AI 的行为和输出格式
-        String prompt = String.format("""
-            你是一位专业的英语教育专家。Your primary task is to REWRITE the English text, NOT translate it.
-            
-            【核心指令 - 极其重要】
-            你需要将原文**改写（Rewrite）**成难度为【%s】的英文文章。
-            绝不允许翻译成中文！绝不允许翻译成中文！The adaptedText MUST BE IN PURE ENGLISH!
-            
-            【处理要求】
-            1. 英文降维重写：用符合目标难度的英文词汇和语法重写原文，保持原意。
-            2. 提取核心生词：从你改写后的英文文章中，提取 5 到 10 个核心英文生词。
-            
-            【格式要求】
-            你必须且只能返回一个合法的 JSON 对象，绝对不要包含任何其他说明文字或 Markdown 标记（如 ```json）。
-            
-            JSON 结构必须完全如下：
-            {
-              "adaptedText": "这里填写改写后的英文文章（MUST BE PURE ENGLISH）",
-              "vocabularies": [
-                {
-                  "word": "提取的英文生词",
-                  "translation": "结合语境的中文释义",
-                  "contextSentence": "包含该生词的改写文中的英文原句"
-                }
-              ]
-            }
-            
-            【原文内容 / Original Text】
-            %s
-            """, difficultyLevel, originalText);
+        String prompt = String.format(
+                """
+                        【SYSTEM IDENTITY】
+                        You are a strict text-rewriting engine. You do NOT have conversations. You do NOT explain. You ONLY output the exact rewritten English text.
 
-        // 2. 调用大模型，获取生成的 JSON 字符串
-        String aiResponse = chatClient.call(prompt);
+                        【TASK】
+                        Rewrite the following text to English difficulty level: [%s].
 
-        // 清理 AI 可能不听话偷偷加上的一些 Markdown 标记
-        aiResponse = aiResponse.replace("```json", "").replace("```", "").trim();
+                        【STRICT RULES】
+                        1. NO CHINESE. Do not translate. Output must be 100%% English.
+                        2. NO CONVERSATIONAL FILLERS. Do not say "Here is the rewritten text" or "Sure".
+                        3. NO MARKDOWN formatting like ``` or bold text.
+
+                        【ORIGINAL TEXT TO REWRITE】
+                        %s
+                        """,
+                difficultyLevel, originalText);
+
+        // 2. 调用大模型，获取生成的字符串
+        String aiResponse = "";
+        try {
+            aiResponse = chatClient.call(prompt);
+        } catch (Exception e) {
+            log.error("调用大模型发生连接异常: ", e);
+            throw new RuntimeException("AI 服务连接超时或异常，请稍后再试");
+        }
 
         try {
-            // 3. 将大模型返回的 JSON 字符串反序列化为我们定义的内部类对象
-            AiGenerateResult result = objectMapper.readValue(aiResponse, AiGenerateResult.class);
+            // 3. AI 直接返回的就是改写后的文章文本，清理可能多余的空格或换行
+            String adaptedText = aiResponse.trim();
+
+            // 构造解析后的对象供后续保存使用
+            AiGenerateResult result = new AiGenerateResult();
+            result.setAdaptedText(adaptedText);
+            // 不再自动提取生词，用户将自己在前端划词添加
 
             // 4. 保存文章到数据库
             Article article = new Article();
@@ -92,21 +85,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             article.setTargetLanguage("EN"); // 这里可以根据实际情况做成动态获取
             article.setDifficultyLevel(difficultyLevel);
             this.save(article); // 保存后，article.getId() 就会被 MyBatis-Plus 自动赋上主键值
-
-            // 5. 遍历生词列表，批量保存到生词本数据库
-            List<VocabularyItem> vocabs = result.getVocabularies();
-            if (vocabs != null && !vocabs.isEmpty()) {
-                for (VocabularyItem item : vocabs) {
-                    Vocabulary vocabulary = new Vocabulary();
-                    vocabulary.setUserId(userId);
-                    vocabulary.setArticleId(article.getId()); // 关联刚刚生成的文章 ID
-                    vocabulary.setWord(item.getWord());
-                    vocabulary.setTranslation(item.getTranslation());
-                    vocabulary.setContextSentence(item.getContextSentence());
-                    vocabulary.setMastered(0); // 默认未掌握
-                    vocabularyMapper.insert(vocabulary);
-                }
-            }
 
             // 6. 封装返回值给前端
             ArticleVO articleVO = new ArticleVO();
@@ -185,15 +163,15 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         // 构建一个非常精简轻量的 Prompt，要求大模型“闭嘴”，只输出翻译结果
         String prompt = String.format("""
-            你是一个专业的英语翻译助手。
-            请结合以下语境，将指定的单词或短语翻译成中文。
-            
-            【要求】
-            你必须且只能返回最贴切的中文释义（几个字即可），绝对不要返回任何多余的解释、拼音、标点符号或其他废话！
-            
-            【单词/短语】: %s
-            【语境原句】: %s
-            """, word, contextSentence);
+                你是一个专业的英语翻译助手。
+                请结合以下语境，将指定的单词或短语翻译成中文。
+
+                【要求】
+                你必须且只能返回最贴切的中文释义（几个字即可），绝对不要返回任何多余的解释、拼音、标点符号或其他废话！
+
+                【单词/短语】: %s
+                【语境原句】: %s
+                """, word, contextSentence);
 
         try {
             String translation = chatClient.call(prompt);

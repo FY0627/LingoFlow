@@ -62,4 +62,13 @@ public class UserController {
 
         return Result.success(userVO);
     }
-}
+    /**
+     * 修改密码
+     */
+    @PostMapping("/change-password")
+    public Result<String> changePassword(@RequestBody com.lingoflow.lingoflowbackend.model.dto.ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        userService.changePassword(userId, changePasswordRequest);
+        return Result.success("修改成功");
+    }
+}

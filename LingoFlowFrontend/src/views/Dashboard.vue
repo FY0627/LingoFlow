@@ -1,33 +1,7 @@
 <template>
   <div class="dashboard-layout">
 
-    <div class="mobile-header">
-      <div class="logo-box" @click="router.push('/profile')" title="用户中心">LF</div>
-      <span class="mobile-title">LingoFlow 工作台</span>
-    </div>
-
-    <div class="sidebar">
-      <div class="top-section">
-        <div class="logo-box desktop-only">LF</div>
-        <div class="nav-menu">
-          <div class="nav-item active" @click="router.push('/dashboard')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            <span>工作台</span>
-          </div>
-          <div class="nav-item" @click="router.push('/vocabulary')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-            <span>生词本</span>
-          </div>
-          <div class="nav-item" @click="router.push('/history')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>历史</span>
-          </div>
-        </div>
-      </div>
-      <div class="bottom-section desktop-only">
-        <div class="avatar" @click="router.push('/profile')" title="用户中心">👨‍💻</div>
-      </div>
-    </div>
+    <Sidebar />
 
     <div class="main-content">
 
@@ -113,8 +87,9 @@
         </div>
 
         <div class="editor-card result-card">
-          <div class="card-header">
-            <span class="card-title">2. i+1 专属文章 (长按选词翻译)</span>
+          <div class="card-header flex-between">
+            <span class="card-title">2. i+1 专属文章 (选词翻译)</span>
+            <button class="outline-btn-small" v-if="currentArticleId" @click="openCorrectionModal">纠错报错</button>
           </div>
           <textarea class="textarea-input result-area" v-model="resultText" readonly @mouseup="handleTextSelection"
             @touchend="handleTextSelection" placeholder="文章将展示在这里..."></textarea>
@@ -132,7 +107,7 @@
 
           <div class="tab-content desktop-only" v-show="activeTab === 'dict'">
             <div v-if="!selectedWord" class="empty-state">
-              <div class="empty-icon">🖱️</div>
+              <div class="empty-icon"></div>
               <p>请在左侧改写后的文章中<br />划选任意你不懂的单词</p>
             </div>
             <div v-else class="dict-result">
@@ -156,7 +131,6 @@
             <h3 v-if="isMobile" class="mobile-section-title">3. 课后自测</h3>
 
             <div v-if="quizList.length === 0" class="empty-state">
-              <div class="empty-icon">📝</div>
               <p>阅读完成后生成 3 道理解题</p>
               <button class="primary-btn" @click="generateQuiz" :disabled="isGeneratingQuiz">
                 {{ isGeneratingQuiz ? '出题中...' : '生成课后自测' }}
@@ -216,14 +190,34 @@
     <div v-if="isMobile && showMobileDict" class="mobile-overlay" @click="showMobileDict = false"
       @touchstart="showMobileDict = false"></div>
 
+    <!-- 纠错报错弹窗 -->
+    <div class="modal-overlay" v-if="showCorrectionModal" @click.self="closeCorrectionModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>内容纠错报错</h2>
+          <button class="close-modal" @click="closeCorrectionModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="correction-tip">请在下方直接修改不准确的翻译内容或补充建议：</p>
+          <textarea v-model="correctionSuggestion" class="correction-textarea" placeholder="请输入正确的翻译或你的建议..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeCorrectionModal" :disabled="isSubmittingCorrection">取消</button>
+          <button class="btn-submit" @click="submitCorrection" :disabled="isSubmittingCorrection">
+            {{ isSubmittingCorrection ? '提交中...' : '提交建议' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import Sidebar from '../components/Sidebar.vue'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
-import { generateQuizApi, submitQuizApi } from '../api/quiz'
 
 const router = useRouter()
 
@@ -232,11 +226,10 @@ const checkMobile = () => { isMobile.value = window.innerWidth <= 768 }
 
 const showMobileDict = ref(false)
 const mobilePopupStyle = ref({})
-
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
-  
+
   // 1. 尝试读取从 Register / Login 传过来的默认难度
   const defaultDiff = localStorage.getItem('lingoflow_default_difficulty')
   if (defaultDiff) {
@@ -246,20 +239,20 @@ onMounted(() => {
   // 2. 尝试读取从 History 传过来的“接续文章”
   const resumeData = localStorage.getItem('lingoflow_resume_article')
   if (resumeData) {
-    const article = JSON.parse(resumeData)
-    originalText.value = article.originalText
-    resultText.value = article.adaptedText
-    difficulty.value = article.difficultyLevel
-    currentArticleId.value = article.id
-    // 读取完后立刻销毁，防止下次进来还显示
-    localStorage.removeItem('lingoflow_resume_article')
+    try {
+      const article = JSON.parse(resumeData)
+      originalText.value = article.originalText
+      resultText.value = article.adaptedText
+      difficulty.value = article.difficultyLevel
+      currentArticleId.value = article.id
+      // 读取完后立刻销毁，防止下次进来还显示
+      localStorage.removeItem('lingoflow_resume_article')
+    } catch (e) {
+      console.error('解析历史数据失败', e)
+    }
   }
 })
 
-onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
-})
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
 })
@@ -289,7 +282,7 @@ const goToVocabulary = () => {
 const handleRewrite = async () => {
   if (!originalText.value.trim()) return alert('请先输入原文！')
   isGenerating.value = true
-  resultText.value = '🚀 正在重写...'
+  resultText.value = '正在重写...'
   quizList.value = []
   quizFeedback.value = null
   userAnswers.value = {}
@@ -349,7 +342,7 @@ const handleAddVocab = async () => {
   if (!currentArticleId.value) return alert('请先生成文章ID')
   try {
     await addVocabularyApi({ articleId: currentArticleId.value, word: selectedWord.value, translation: translationResult.value, contextSentence: contextSentence.value })
-    alert('🎉 已存入生词本！')
+    alert('已存入生词本！')
     if (isMobile.value) showMobileDict.value = false
   } catch (error) { }
 }
@@ -383,6 +376,46 @@ const submitQuiz = async () => {
   finally { isGrading.value = false }
 }
 
+const showCorrectionModal = ref(false)
+const correctionOriginal = ref('')
+const correctionSuggestion = ref('')
+const isSubmittingCorrection = ref(false)
+
+const openCorrectionModal = () => {
+  if (!currentArticleId.value) return alert('请先生成文章！')
+  correctionOriginal.value = resultText.value
+  correctionSuggestion.value = resultText.value
+  showCorrectionModal.value = true
+}
+
+const closeCorrectionModal = () => {
+  showCorrectionModal.value = false
+  correctionOriginal.value = ''
+  correctionSuggestion.value = ''
+}
+
+const submitCorrection = async () => {
+  if (!correctionSuggestion.value.trim()) return alert('建议内容不能为空！')
+  isSubmittingCorrection.value = true
+  try {
+    await submitCorrectionApi({
+      type: 'ARTICLE',
+      targetId: currentArticleId.value,
+      originalContent: correctionOriginal.value,
+      userSuggestion: correctionSuggestion.value
+    })
+    alert('纠错提交成功！审核通过后将通过站内信通知您。')
+    closeCorrectionModal()
+  } catch (error) {
+    alert('提交失败，请稍后重试。')
+  } finally {
+    isSubmittingCorrection.value = false
+  }
+}
+
+const fetchUnreadCount = () => {} // 已迁移到 Sidebar 组件
+
+
 const getOptionClass = (qIndex, optionText) => {
   const isSelected = userAnswers.value[qIndex] === optionText
   if (!quizFeedback.value) return isSelected ? 'selected-choice' : ''
@@ -392,6 +425,21 @@ const getOptionClass = (qIndex, optionText) => {
 </script>
 
 <style scoped>
+.outline-btn-small { padding: 4px 10px; background: white; color: #4b5563; border-radius: 6px; border: 1px solid #d1d5db; font-size: 12px; cursor: pointer; }
+.outline-btn-small:hover { background: #f9fafb; color: #111827; }
+
+/* Correction Modal */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal-card { background: white; width: 90%; max-width: 600px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 20px; font-weight: 800; margin: 0; }
+.close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #9ca3af; }
+.correction-tip { font-size: 14px; color: #4b5563; margin-bottom: 12px; }
+.correction-textarea { width: 100%; height: 200px; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb; outline: none; resize: vertical; font-size: 15px; font-family: 'Georgia', serif; line-height: 1.6; box-sizing: border-box; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+.btn-cancel { padding: 8px 20px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-submit { padding: 8px 20px; background: #111827; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
 .dashboard-layout {
   display: flex;
   height: 100vh;
@@ -400,28 +448,6 @@ const getOptionClass = (qIndex, optionText) => {
   font-family: -apple-system, sans-serif;
   overflow: hidden;
 }
-
-.mobile-header {
-  display: none;
-}
-
-/* 修改前：没有间距 */
-/* 修改后：增加 margin-bottom 和 gap，并且加上头像 hover 动画 */
-
-.sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; z-index: 10;}
-.top-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
-
-.logo-box { width: 40px; height: 40px; background-color: #111827; color: #ffffff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; margin-bottom: 60px; }
-.nav-menu { display: flex; flex-direction: column; gap: 36px; width: 100%; }
-
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #9ca3af; cursor: pointer; transition: 0.2s;}
-.nav-icon { width: 24px; height: 24px; }
-.nav-item span { font-size: 12px; font-weight: 500; }
-.nav-item:hover { color: #4b5563; }
-.nav-item.active { color: #111827; }
-
-.avatar { width: 40px; height: 40px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent;}
-.avatar:hover, .avatar.active { border-color: #111827; transform: scale(1.05); }
 
 .main-content {
   flex: 1;
@@ -770,60 +796,6 @@ const getOptionClass = (qIndex, optionText) => {
 
   .desktop-only {
     display: none !important;
-  }
-
-  .mobile-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 20px;
-    background: white;
-    border-bottom: 1px solid #e5e7eb;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-  }
-
-  .mobile-title {
-    font-weight: 700;
-    font-size: 16px;
-  }
-
-  .mobile-header .logo-box {
-    margin: 0;
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: 65px;
-    padding: 0;
-    flex-direction: row;
-    border-right: none;
-    border-top: 1px solid #e5e7eb;
-    position: fixed;
-    bottom: 0;
-    z-index: 20;
-    background: #ffffff;
-  }
-
-  .top-section {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-  }
-
-  .nav-menu {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0 40px;
-    width: 100%;
-    margin: 0;
-    gap: 0;
   }
 
   .nav-item {

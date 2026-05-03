@@ -16,9 +16,9 @@ export const forgotPasswordApi = (email) => {
   return request({ url: '/api/user/forgot-password', method: 'post', data: { email } })
 }
 
-// 4. 修改密码 (预留)
+// 4. 修改密码
 export const changePasswordApi = (data) => {
-  return request({ url: '/api/user/change-password', method: 'put', data })
+  return request({ url: '/api/user/change-password', method: 'post', data })
 }
 
 // ==========================================

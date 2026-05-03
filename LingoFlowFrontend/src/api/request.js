@@ -4,7 +4,7 @@ import axios from 'axios'
 // 1. 创建 axios 实例
 const request = axios.create({
   baseURL: '', // 因为我们在 vite 配置了代理，所以留空即可
-  timeout: 10000 // 请求超时时间
+  timeout: 60000 // 请求超时时间增加到 60s，因为 AI 生成较慢
 })
 
 // 2. 请求拦截器：发请求前，自动去 localStorage 找 token 带上

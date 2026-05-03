@@ -10,8 +10,19 @@
           </div>
 
           <div class="header-text">
-            <span class="title">欢迎回来！</span>
-            <span class="subtitle">请输入您的账号信息进行登录</span>
+            <span class="title">Welcome Back!</span>
+            <div class="role-selector-container">
+              <span class="role-label">选择登录身份</span>
+              <div class="role-selector">
+                <div class="role-btn" :class="{ active: selectedRole === 'user' }" @click="selectedRole = 'user'">
+                  普通用户
+                </div>
+                <div class="role-btn" :class="{ active: selectedRole === 'admin' }" @click="selectedRole = 'admin'">
+                  管理员
+                </div>
+                <div class="active-indicator" :class="selectedRole"></div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -26,7 +37,8 @@
             </div>
             <div class="password-input-wrapper">
               <input class="input-field pr-10" v-model="formData.password" :type="showPassword ? 'text' : 'password'"
-                placeholder="••••••••" @focus="isPasswordFocused = true" @blur="isPasswordFocused = false" />
+                placeholder="••••••••" @focus="isPasswordFocused = true" @blur="isPasswordFocused = false"
+                @keyup.enter="handleLogin" />
               <div class="eye-icon" @click="showPassword = !showPassword">
                 <div class="simple-eye-svg" :class="{ showing: showPassword }"></div>
               </div>
@@ -57,6 +69,7 @@ const router = useRouter()
 const showPassword = ref(false)
 const isLoading = ref(false)
 const isPasswordFocused = ref(false)
+const selectedRole = ref('user') // 默认选择普通用户
 
 const formData = reactive({
   username: '', // 注意这里对应后端的字段名叫 username，不是 email
@@ -80,7 +93,11 @@ const handleLogin = async () => {
     // 将 Token 存入浏览器的本地存储中
     localStorage.setItem('lingoflow_token', token)
 
-    router.push('/dashboard')
+    if (selectedRole.value === 'admin') {
+      router.push('/admin/correction')
+    } else {
+      router.push('/dashboard')
+    }
 
   } catch (error) {
     // 错误已经在拦截器里 alert 过了，这里不需要额外处理
@@ -155,20 +172,74 @@ const goToRegister = () => {
 
 .header-text {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .title {
   display: block;
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   font-weight: bold;
   color: #111827;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.subtitle {
+.role-selector-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.role-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.role-selector {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  padding: 4px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.role-btn {
+  flex: 1;
+  text-align: center;
   font-size: 0.875rem;
+  padding: 10px 0;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: #6b7280;
+  font-weight: 500;
+}
+
+.role-btn.active {
+  color: #111827;
+  font-weight: 600;
+}
+
+.active-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background-color: #ffffff;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.active-indicator.admin {
+  transform: translateX(100%);
 }
 
 .form-group {

@@ -6,27 +6,24 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("lingo_vocabulary")
-public class Vocabulary {
+@TableName("lingo_message")
+public class Message {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
     private Long userId;
 
-    private Long articleId;
+    private String title;
 
-    private String word;
+    private String content;
 
-    private String translation;
+    @TableField("is_read")
+    private Integer isRead;
 
-    private String contextSentence;
-
-    /**
-     * 是否已掌握：1是，0否
-     */
-    @TableField("is_mastered")
-    private Integer mastered;
+    @TableLogic
+    @TableField("is_deleted")
+    private Integer deleted;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

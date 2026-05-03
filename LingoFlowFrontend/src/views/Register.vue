@@ -10,8 +10,19 @@
           </div>
 
           <div class="header-text">
-            <span class="title">加入我们！</span>
-            <span class="subtitle">创建你的 LingoFlow 学习账号</span>
+            <span class="title">Join Us!</span>
+            <div class="role-selector-container">
+              <span class="role-label">选择账号类型</span>
+              <div class="role-selector">
+                <div class="role-btn" :class="{ active: selectedRole === 'user' }" @click="selectedRole = 'user'">
+                  普通用户
+                </div>
+                <div class="role-btn" :class="{ active: selectedRole === 'admin' }" @click="selectedRole = 'admin'">
+                  管理员
+                </div>
+                <div class="active-indicator" :class="selectedRole"></div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -29,6 +40,7 @@
                 placeholder="至少 6 位密码" 
                 @focus="isPasswordFocused = true" 
                 @blur="isPasswordFocused = false"
+                @keyup.enter="handleRegister"
               />
               <div class="eye-icon" @click="showPassword = !showPassword">
                 <div class="simple-eye-svg" :class="{ showing: showPassword }"></div>
@@ -36,7 +48,7 @@
             </div>
           </div>
 
-          <div class="form-row">
+          <div class="form-row" v-if="selectedRole === 'user'">
             <div class="form-group half-width">
               <span class="label">目标语言</span>
               <select class="input-field select-field" v-model="formData.targetLanguage">
@@ -102,6 +114,7 @@ const router = useRouter()
 const showPassword = ref(false)
 const isLoading = ref(false)
 const isPasswordFocused = ref(false)
+const selectedRole = ref('user') // 默认选择普通用户
 
 const formData = reactive({
   username: '',
@@ -152,9 +165,77 @@ const goToLogin = () => {
 .mobile-logo { display: flex; justify-content: center; margin-bottom: 2rem; }
 @media (min-width: 1024px) { .mobile-logo { display: none; } }
 .brand-name-mobile { font-size: 1.5rem; font-weight: bold; color: #111827; }
-.header-text { text-align: center; margin-bottom: 2.5rem; }
-.title { display: block; font-size: 1.5rem; font-weight: bold; color: #111827; margin-bottom: 0.5rem; }
-.subtitle { font-size: 0.875rem; color: #6b7280; }
+.header-text {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.role-selector-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.role-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.role-selector {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  padding: 4px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.role-btn {
+  flex: 1;
+  text-align: center;
+  font-size: 0.875rem;
+  padding: 10px 0;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.role-btn.active {
+  color: #111827;
+  font-weight: 600;
+}
+
+.active-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background-color: #ffffff;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.active-indicator.admin {
+  transform: translateX(100%);
+}
 .form-group { margin-bottom: 1.25rem; width: 100%; }
 
 /* 新增：两列布局样式，让语言和水平并排显示 */

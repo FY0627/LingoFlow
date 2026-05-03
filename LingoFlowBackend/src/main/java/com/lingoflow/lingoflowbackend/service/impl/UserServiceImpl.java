@@ -74,4 +74,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 3. 登录成功，颁发 JWT Token
         return JwtUtils.generateToken(user.getId(), user.getUsername());
     }
-}
+    @Override
+    public void changePassword(Long userId, com.lingoflow.lingoflowbackend.model.dto.ChangePasswordRequest request) {
+        String oldPassword = request.getOldPassword();
+        String newPassword = request.getNewPassword();
+
+        if (oldPassword == null || oldPassword.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+            throw new RuntimeException("原密码和新密码不能为空");
+        }
+
+        User user = this.getById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        // 验证原密码
+        String oldMd5 = DigestUtils.md5DigestAsHex((oldPassword + SALT).getBytes(StandardCharsets.UTF_8));
+        if (!user.getPasswordHash().equals(oldMd5)) {
+            throw new RuntimeException("原密码错误");
+        }
+
+        // 更新为新密码
+        String newMd5 = DigestUtils.md5DigestAsHex((newPassword + SALT).getBytes(StandardCharsets.UTF_8));
+        user.setPasswordHash(newMd5);
+        this.updateById(user);
+    }
+}
