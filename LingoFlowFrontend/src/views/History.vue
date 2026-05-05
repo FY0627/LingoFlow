@@ -89,6 +89,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
 import { getArticleListApi, deleteArticleApi } from '../api/article'
+import { submitCorrectionApi } from '../api/correction'
 
 const router = useRouter()
 const isLoading = ref(true)

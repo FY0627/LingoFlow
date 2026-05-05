@@ -218,6 +218,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
+import { submitCorrectionApi } from '../api/correction'
 
 const router = useRouter()
 
