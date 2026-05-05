@@ -59,6 +59,7 @@ public class UserController {
         userVO.setUsername(user.getUsername());
         userVO.setTargetLanguage(user.getTargetLanguage());
         userVO.setCurrentLevel(user.getCurrentLevel());
+        userVO.setUserRole(user.getUserRole());
 
         return Result.success(userVO);
     }

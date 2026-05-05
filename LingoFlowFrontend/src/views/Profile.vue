@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-layout">
-    
+    <MobileHeader />
     <Sidebar />
 
     <div class="main-content">
@@ -76,6 +76,7 @@
         </div>
       </div>
     </div>
+    <Tabbar />
   </div>
 </template>
 
@@ -83,6 +84,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
+import MobileHeader from '../components/MobileHeader.vue'
+import Tabbar from '../components/Tabbar.vue'
 import { importDataApi, downloadUserData, changePasswordApi } from '../api/user'
 
 const router = useRouter()
@@ -121,6 +124,7 @@ const handleImportData = async (event) => {
 const handleLogout = () => {
   if (confirm('确定要退出 LingoFlow 吗？')) {
     localStorage.removeItem('lingoflow_token') // 清除登录令牌
+    localStorage.removeItem('lingoflow_user_role') // 清除角色信息
     router.push('/login')
   }
 }
@@ -145,6 +149,7 @@ const handleChangePassword = async () => {
     })
     alert('密码修改成功！请重新登录。')
     localStorage.removeItem('lingoflow_token')
+    localStorage.removeItem('lingoflow_user_role')
     router.push('/login')
   } catch (error) {
     alert('修改失败，请检查原密码是否正确')
@@ -155,7 +160,6 @@ const handleChangePassword = async () => {
 <style scoped>
 /* =========== 基础布局样式 (与其它页面保持一致) =========== */
 .dashboard-layout { display: flex; height: 100vh; width: 100vw; background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow: hidden;}
-.mobile-header { display: none; }
 
 /* Modal 样式 */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -193,8 +197,12 @@ const handleChangePassword = async () => {
 .danger-btn:hover { background: #fee2e2; border-color: #f87171; }
 
 @media (max-width: 768px) {
-  .main-content { padding: 20px; padding-bottom: 90px; }
+  .dashboard-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .main-content { padding: 20px 15px; padding-bottom: 90px; }
   .action-buttons { flex-direction: column; }
   .action-buttons button { width: 100%; }
 }
-</style>
+</style>

@@ -214,6 +214,7 @@ const handleReject = async () => {
 
 const handleLogout = () => {
   localStorage.removeItem('lingoflow_token')
+  localStorage.removeItem('lingoflow_user_role')
   router.push('/login')
 }
 

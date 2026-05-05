@@ -8,4 +8,5 @@ public class UserVO {
     private String username;
     private String targetLanguage;
     private String currentLevel;
+    private String userRole;
 }

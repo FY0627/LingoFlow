@@ -1,32 +1,7 @@
 <template>
   <div class="dashboard-layout">
-    <!-- Sidebar (Same as Dashboard) -->
-    <div class="sidebar">
-      <div class="top-section">
-        <div class="logo-box" @click="router.push('/dashboard')">LF</div>
-        <div class="nav-menu">
-          <div class="nav-item" @click="router.push('/dashboard')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            <span>工作台</span>
-          </div>
-          <div class="nav-item" @click="router.push('/vocabulary')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-            <span>生词本</span>
-          </div>
-          <div class="nav-item" @click="router.push('/history')">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>历史</span>
-          </div>
-          <div class="nav-item active">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            <span>消息</span>
-          </div>
-        </div>
-      </div>
-      <div class="bottom-section">
-        <div class="avatar" @click="router.push('/profile')" title="用户中心">👨‍💻</div>
-      </div>
-    </div>
+    <MobileHeader />
+    <Sidebar />
 
     <!-- Main Content -->
     <div class="main-content">
@@ -64,12 +39,16 @@
         </div>
       </div>
     </div>
+    <Tabbar />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import Sidebar from '../components/Sidebar.vue'
+import MobileHeader from '../components/MobileHeader.vue'
+import Tabbar from '../components/Tabbar.vue'
 import { getMessageListApi, markAsReadApi } from '../api/message'
 
 const router = useRouter()
@@ -135,16 +114,7 @@ onMounted(fetchMessages)
   overflow: hidden;
 }
 
-/* Sidebar Styling (Reuse) */
-.sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; }
-.logo-box { width: 40px; height: 40px; background-color: #111827; color: #ffffff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; margin-bottom: 60px; }
-.nav-menu { display: flex; flex-direction: column; gap: 36px; width: 100%; }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #9ca3af; cursor: pointer; transition: 0.2s;}
-.nav-icon { width: 24px; height: 24px; }
-.nav-item span { font-size: 12px; font-weight: 500; }
-.nav-item:hover { color: #4b5563; }
-.nav-item.active { color: #111827; }
-.avatar { width: 40px; height: 40px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: 2px solid transparent;}
+.dashboard-layout { display: flex; height: 100vh; width: 100vw; background-color: #f3f4f6; overflow: hidden;}
 
 /* Main Content */
 .main-content {
@@ -235,21 +205,17 @@ onMounted(fetchMessages)
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 30px;
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .main-content {
+    padding: 20px 15px;
+    padding-bottom: 90px;
+  }
+  .message-list {
+    max-width: 100%;
+  }
 }
-
-.pagination button {
-  padding: 8px 16px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

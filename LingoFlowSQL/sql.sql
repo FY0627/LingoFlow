@@ -5,12 +5,12 @@ CREATE DATABASE IF NOT EXISTS `lingo_db` DEFAULT CHARACTER SET utf8mb4 COLLATE u
 -- 2. 切换到刚刚创建的数据库
 USE `lingo_db`;
 
--- 为了重新执行时清空数据，先删除旧表（注意删除顺序，如果有外键约束的话）
--- DROP TABLE IF EXISTS `lingo_message`;
--- DROP TABLE IF EXISTS `lingo_correction_ticket`;
--- DROP TABLE IF EXISTS `lingo_vocabulary`;
--- DROP TABLE IF EXISTS `lingo_article`;
--- DROP TABLE IF EXISTS `lingo_user`;
+为了重新执行时清空数据，先删除旧表（注意删除顺序，如果有外键约束的话）
+DROP TABLE IF EXISTS `lingo_message`;
+DROP TABLE IF EXISTS `lingo_correction_ticket`;
+DROP TABLE IF EXISTS `lingo_vocabulary`;
+DROP TABLE IF EXISTS `lingo_article`;
+DROP TABLE IF EXISTS `lingo_user`;
 
 -- 3. 创建用户档案表
 -- 表必备三字段：id, create_time, update_time
@@ -21,6 +21,7 @@ CREATE TABLE `lingo_user` (
   `password_hash` varchar(100) NOT NULL COMMENT '加密后的密码',
   `target_language` varchar(20) DEFAULT 'EN' COMMENT '目标学习语言(如EN, JP)',
   `current_level` varchar(50) DEFAULT 'V1000' COMMENT '当前能力等级(如词汇量1000, N4)',
+  `user_role` varchar(20) NOT NULL DEFAULT 'USER' COMMENT '用户角色：USER普通用户, ADMIN管理员',
   `is_deleted` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '是否逻辑删除：1是，0否',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

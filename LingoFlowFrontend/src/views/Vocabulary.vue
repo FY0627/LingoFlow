@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-layout">
-    
+    <MobileHeader />
     <Sidebar />
 
     <div class="main-content">
@@ -69,7 +69,7 @@
         </div>
       </div>
     </div>
-
+    <Tabbar />
   </div>
 </template>
 
@@ -77,6 +77,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
+import MobileHeader from '../components/MobileHeader.vue'
+import Tabbar from '../components/Tabbar.vue'
 import { getVocabularyListApi, updateVocabularyStatusApi, deleteVocabularyApi } from '../api/vocabulary'
 import { submitCorrectionApi } from '../api/correction'
 
@@ -232,7 +234,11 @@ const submitCorrection = async () => {
 .page-info { font-size: 14px; color: #4b5563; font-weight: 500;}
 
 @media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
   .main-content { padding: 20px 15px; padding-bottom: 90px; }
   .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
 }
-</style>
+</style>

@@ -87,11 +87,13 @@ const handleLogin = async () => {
     // 调用接口，等待后端返回 Token
     const token = await loginApi({
       username: formData.username,
-      password: formData.password
+      password: formData.password,
+      userRole: selectedRole.value.toUpperCase()
     })
 
     // 将 Token 存入浏览器的本地存储中
     localStorage.setItem('lingoflow_token', token)
+    localStorage.setItem('lingoflow_user_role', selectedRole.value.toUpperCase())
 
     if (selectedRole.value === 'admin') {
       router.push('/admin/correction')

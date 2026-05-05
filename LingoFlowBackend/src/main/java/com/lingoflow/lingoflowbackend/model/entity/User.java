@@ -19,6 +19,8 @@ public class User {
     private String targetLanguage;
 
     private String currentLevel;
+    
+    private String userRole;
 
     /**
      * 是否逻辑删除：1是，0否

@@ -1,14 +1,8 @@
 <template>
-  <!-- 移动端头部 -->
-  <div class="mobile-header">
-    <div class="logo-box" @click="router.push('/profile')" title="用户中心">LF</div>
-    <span class="mobile-title">LingoFlow</span>
-  </div>
-
-  <!-- 侧边栏 -->
-  <div class="sidebar">
+  <!-- 侧边栏 (仅桌面端显示) -->
+  <div class="sidebar desktop-only">
     <div class="top-section">
-      <div class="logo-box desktop-only" @click="router.push('/dashboard')">LF</div>
+      <div class="logo-box" @click="router.push('/dashboard')">LF</div>
       <div class="nav-menu">
         <div class="nav-item" :class="{ active: currentPath === '/dashboard' }" @click="router.push('/dashboard')">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
@@ -31,7 +25,7 @@
         </div>
       </div>
     </div>
-    <div class="bottom-section desktop-only">
+    <div class="bottom-section">
       <div class="avatar" :class="{ active: currentPath === '/profile' }" @click="router.push('/profile')" title="用户中心">👨‍💻</div>
     </div>
   </div>
@@ -68,9 +62,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.mobile-header { display: none; }
-
-.sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; z-index: 10;}
+.sidebar { width: 80px; background-color: #ffffff; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; flex-shrink: 0; height: 100vh; position: sticky; top: 0; left: 0;}
 .top-section { display: flex; flex-direction: column; align-items: center; width: 100%; }
 .logo-box { width: 40px; height: 40px; background-color: #111827; color: #ffffff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; margin-bottom: 60px; }
 .nav-menu { display: flex; flex-direction: column; gap: 36px; width: 100%; }
@@ -86,13 +78,6 @@ onUnmounted(() => {
 .unread-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; border: 2px solid #ffffff; }
 
 @media (max-width: 768px) {
-  .mobile-header { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: white; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 20;}
-  .mobile-title { font-weight: 700; font-size: 16px;}
-  .mobile-header .logo-box { margin: 0; width: 32px; height: 32px; font-size: 14px;}
-  .sidebar { width: 100%; height: 65px; padding: 0; flex-direction: row; border-right: none; border-top: 1px solid #e5e7eb; position: fixed; bottom: 0; z-index: 20; background: #ffffff;}
-  .top-section { width: 100%; display: flex; align-items: center; justify-content: center; height: 100%; }
-  .nav-menu { flex-direction: row; justify-content: space-between; padding: 0 40px; width: 100%; margin: 0; gap: 0; }
-  .nav-item { flex-direction: column; gap: 4px; flex: 1; align-items: center; }
   .desktop-only { display: none !important; }
 }
 </style>

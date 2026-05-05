@@ -136,7 +136,8 @@ const handleRegister = async () => {
       username: formData.username,
       password: formData.password,
       targetLanguage: formData.targetLanguage,
-      currentLevel: formData.currentLevel
+      currentLevel: formData.currentLevel,
+      userRole: selectedRole.value.toUpperCase()
     })
 
     localStorage.setItem('lingoflow_default_difficulty', formData.currentLevel)

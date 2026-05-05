@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-layout">
-    
+    <MobileHeader />
     <Sidebar />
 
     <div class="main-content">
@@ -28,12 +28,13 @@
             
             <div class="card-header">
               <div class="badge-group">
-                <span class="difficulty-badge">{{ article.difficultyLevel || '标准难度' }}</span>
-                <span class="time-text">{{ formatDate(article.createTime || article.createdAt) }}</span>
+                <div class="header-info-wrapper">
+                   <span class="time-text">{{ formatDate(article.createTime || article.createdAt) }}</span>
+                   <span class="difficulty-badge">{{ article.difficultyLevel || '标准难度' }}</span>
+                </div>
               </div>
-              <div style="display: flex; gap: 10px;">
-                <button class="outline-btn" style="padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #d1d5db; background: white; cursor: pointer;" @click="openCorrectionModal(article)">内容纠错</button>
-                <button class="primary-btn" style="padding: 6px 12px; font-size: 13px;" @click="resumeLearning(article)">继续学习</button>
+              <div class="card-top-actions">
+                <button class="resume-btn desktop-only" @click="resumeLearning(article)">继续学习</button>
                 <button class="delete-icon-btn" title="删除记录" @click="removeArticle(article.id)">🗑️</button>
               </div>
             </div>
@@ -43,10 +44,15 @@
                 <div class="box-label">原文</div>
                 <p class="text-content">{{ article.originalText }}</p>
               </div>
-              <div class="text-box highlight-box">
+              <div class="text-box">
                 <div class="box-label">i+1 改写版</div>
                 <p class="text-content">{{ article.adaptedText }}</p>
               </div>
+            </div>
+
+            <div class="card-footer">
+              <button class="resume-btn small" @click="resumeLearning(article)">继续学习</button>
+              <button class="correction-btn-small" @click="openCorrectionModal(article)">内容纠错</button>
             </div>
 
           </div>
@@ -80,7 +86,7 @@
         </div>
       </div>
     </div>
-
+    <Tabbar />
   </div>
 </template>
 
@@ -88,6 +94,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
+import MobileHeader from '../components/MobileHeader.vue'
+import Tabbar from '../components/Tabbar.vue'
 import { getArticleListApi, deleteArticleApi } from '../api/article'
 import { submitCorrectionApi } from '../api/correction'
 
@@ -192,7 +200,6 @@ const submitCorrection = async () => {
 
 <style scoped>
 .dashboard-layout { display: flex; height: 100vh; width: 100vw; background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow: hidden;}
-.mobile-header { display: none; }
 
 .outline-btn:hover { background: #f9fafb !important; color: #111827 !important; }
 
@@ -209,10 +216,10 @@ const submitCorrection = async () => {
 .btn-submit { padding: 8px 20px; background: #111827; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
 
-.main-content { flex: 1; display: flex; flex-direction: column; padding: 30px 40px; overflow-y: auto; }
-.page-header { margin-bottom: 30px; }
-.page-title { font-size: 28px; font-weight: 800; color: #111827; margin: 0 0 10px 0; }
-.page-subtitle { font-size: 15px; color: #6b7280; margin: 0; }
+.main-content { flex: 1; display: flex; flex-direction: column; padding: 40px 60px; overflow-y: auto; }
+.page-header { margin-bottom: 40px; }
+.page-title { font-size: 32px; font-weight: 800; color: #111827; margin: 0 0 12px 0; }
+.page-subtitle { font-size: 16px; color: #6b7280; margin: 0; }
 
 .status-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 50vh; color: #6b7280; }
 .empty-icon { font-size: 60px; margin-bottom: 20px; }
@@ -222,19 +229,29 @@ const submitCorrection = async () => {
 .history-list { display: flex; flex-direction: column; gap: 24px; margin-bottom: 30px; flex: 1; }
 .history-card { background: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
 
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f3f4f6; padding-bottom: 15px;}
-.badge-group { display: flex; align-items: center; gap: 12px; }
-.difficulty-badge { background: #111827; color: #ffffff; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.time-text { font-size: 13px; color: #9ca3af; }
-.delete-icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: 0.2s;}
-.delete-icon-btn:hover { opacity: 1; transform: scale(1.1);}
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f3f4f6; padding-bottom: 20px;}
+.badge-group { display: flex; align-items: center; gap: 15px; }
+.header-info-wrapper { display: flex; align-items: center; gap: 15px; }
+.difficulty-badge { background: #111827; color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
+.time-text { font-size: 13px; color: #9ca3af; font-weight: 500; }
+
+.card-top-actions { display: flex; align-items: center; gap: 12px; }
+.resume-btn { background: #111827; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.resume-btn:hover { background: #374151; transform: translateY(-1px); }
+
+.delete-icon-btn { background: none; border: none; cursor: pointer; font-size: 18px; opacity: 0.4; transition: 0.2s; padding: 5px;}
+.delete-icon-btn:hover { opacity: 1; transform: scale(1.2) rotate(5deg);}
 
 .text-comparison { display: flex; gap: 20px; }
 .text-box { flex: 1; display: flex; flex-direction: column; width: 50%;}
 .highlight-box { background: #fafafa; border-radius: 8px; padding: 15px; border: 1px solid #f3f4f6;}
-.box-label { font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 10px; }
-.text-content { font-size: 15px; color: #374151; line-height: 1.6; margin: 0; white-space: pre-wrap; font-family: 'Georgia', serif;}
-.primary-btn { padding: 12px; background: #111827; color: white; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.box-label { font-size: 13px; font-weight: 700; color: #9ca3af; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.text-content { font-size: 16px; color: #1f2937; line-height: 1.7; margin: 0; white-space: pre-wrap; font-family: 'Inter', -apple-system, sans-serif;}
+
+.card-footer { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e5e7eb; }
+.resume-btn.small { display: none; }
+.correction-btn-small { background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.correction-btn-small:hover { color: #111827; border-color: #111827; background: #f9fafb; }
 
 /* 分页器样式 */
 .pagination-bar { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 20px 0; border-top: 1px solid #e5e7eb; margin-top: auto;}
@@ -244,8 +261,48 @@ const submitCorrection = async () => {
 .page-info { font-size: 14px; color: #4b5563; font-weight: 500;}
 
 @media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
   .main-content { padding: 20px 15px; padding-bottom: 90px; }
   .text-comparison { flex-direction: column; gap: 20px; }
   .text-box { width: 100%; }
+
+  .desktop-only { display: none !important; }
+  
+  .header-info-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .card-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+  }
+
+  .difficulty-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .resume-btn.small {
+    display: block !important;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .correction-btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 }
 </style>

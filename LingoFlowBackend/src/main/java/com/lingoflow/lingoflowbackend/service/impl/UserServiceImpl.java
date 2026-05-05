@@ -45,6 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPasswordHash(md5Password);
         user.setTargetLanguage(request.getTargetLanguage() != null ? request.getTargetLanguage() : "EN");
         user.setCurrentLevel(request.getCurrentLevel() != null ? request.getCurrentLevel() : "V1000");
+        user.setUserRole(request.getUserRole() != null ? request.getUserRole() : "USER");
 
         this.save(user); // MyBatis-Plus 提供的方法，插入成功后会自动把主键 ID 回写到 user 对象中
 
@@ -69,6 +70,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String md5Password = DigestUtils.md5DigestAsHex((password + SALT).getBytes(StandardCharsets.UTF_8));
         if (!user.getPasswordHash().equals(md5Password)) {
             throw new RuntimeException("密码错误");
+        }
+
+        // 3. 校验角色身份是否匹配
+        // 如果用户在前端选的是“管理员”，但数据库里是“USER”，则拒绝登录
+        if (request.getUserRole() != null && !request.getUserRole().equalsIgnoreCase(user.getUserRole())) {
+            throw new RuntimeException("登录身份不匹配，请检查选择的角色");
         }
 
         // 3. 登录成功，颁发 JWT Token

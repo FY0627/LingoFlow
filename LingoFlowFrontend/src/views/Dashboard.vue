@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-layout">
-
+    <MobileHeader />
     <Sidebar />
 
     <div class="main-content">
@@ -209,7 +209,7 @@
         </div>
       </div>
     </div>
-
+    <Tabbar />
   </div>
 </template>
 
@@ -217,6 +217,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
+import MobileHeader from '../components/MobileHeader.vue'
+import Tabbar from '../components/Tabbar.vue'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
 import { submitCorrectionApi } from '../api/correction'
 
@@ -809,7 +811,7 @@ const getOptionClass = (qIndex, optionText) => {
   .main-content {
     flex-direction: column;
     overflow: visible;
-    padding: 15px;
+    padding: 20px 15px;
     padding-bottom: 80px;
     gap: 15px;
   }
