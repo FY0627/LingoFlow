@@ -126,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCorrectionListApi, adoptCorrectionApi, rejectCorrectionApi } from '../api/admin'
 
@@ -142,8 +142,8 @@ const currentTicket = ref(null)
 const adminRemark = ref('')
 const isProcessing = ref(false)
 
-const fetchTickets = async () => {
-  isLoading.value = true
+const fetchTickets = async (silent = false) => {
+  if (!silent) isLoading.value = true
   try {
     const res = await getCorrectionListApi({
       page: page.value,
@@ -154,9 +154,22 @@ const fetchTickets = async () => {
   } catch (err) {
     console.error(err)
   } finally {
-    isLoading.value = false
+    if (!silent) isLoading.value = false
   }
 }
+
+let timer = null
+
+onMounted(() => {
+  fetchTickets()
+  timer = setInterval(() => {
+    fetchTickets(true)
+  }, 10000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 const openDetail = (ticket) => {
   currentTicket.value = ticket

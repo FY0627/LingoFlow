@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getUnreadCountApi } from '../api/message'
 
@@ -55,8 +55,15 @@ const fetchUnreadCount = async () => {
   } catch (err) { console.error(err) }
 }
 
+let timer = null
+
 onMounted(() => {
   fetchUnreadCount()
+  timer = setInterval(fetchUnreadCount, 10000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
 })
 </script>
 

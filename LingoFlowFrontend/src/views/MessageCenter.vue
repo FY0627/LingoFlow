@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMessageListApi, markAsReadApi } from '../api/message'
 
@@ -79,8 +79,8 @@ const page = ref(1)
 const size = ref(10)
 const totalPages = ref(1)
 
-const fetchMessages = async () => {
-  isLoading.value = true
+const fetchMessages = async (silent = false) => {
+  if (!silent) isLoading.value = true
   try {
     const res = await getMessageListApi(page.value, size.value)
     messageList.value = res.records
@@ -88,9 +88,22 @@ const fetchMessages = async () => {
   } catch (err) {
     console.error(err)
   } finally {
-    isLoading.value = false
+    if (!silent) isLoading.value = false
   }
 }
+
+let timer = null
+
+onMounted(() => {
+  fetchMessages()
+  timer = setInterval(() => {
+    fetchMessages(true)
+  }, 10000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 
 const handleRead = async (msg) => {
   if (msg.isRead === 1) return
