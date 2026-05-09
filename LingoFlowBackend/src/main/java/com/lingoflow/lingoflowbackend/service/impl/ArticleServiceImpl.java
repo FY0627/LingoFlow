@@ -163,14 +163,20 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
         // 构建一个非常精简轻量的 Prompt，要求大模型“闭嘴”，只输出翻译结果
         String prompt = String.format("""
-                你是一个专业的英语翻译助手。
-                请结合以下语境，将指定的单词或短语翻译成中文。
-
-                【要求】
-                你必须且只能返回最贴切的中文释义（几个字即可），绝对不要返回任何多余的解释、拼音、标点符号或其他废话！
-
-                【单词/短语】: %s
-                【语境原句】: %s
+                You are an expert English dictionary like Cambridge Dictionary.
+                Based on the context provided, explain the given word/phrase using simpler English words, followed by its Chinese translation.
+                
+                【Format Requirement】
+                You MUST output EXACTLY two lines without any brackets, parentheses, labels, or conversational fillers.
+                Line 1: The simple English explanation
+                Line 2: The Chinese translation
+                
+                Example:
+                to use something to discover if it works or if you like it
+                尝试，试用
+                
+                【Word/Phrase】: %s
+                【Context Sentence】: %s
                 """, word, contextSentence);
 
         try {

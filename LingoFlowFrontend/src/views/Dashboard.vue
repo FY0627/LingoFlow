@@ -154,10 +154,10 @@
                       <span class="opt-text">{{ opt }}</span>
                     </label>
                   </div>
-                  <div v-if="quizFeedback" class="feedback-box"
+                  <div v-if="quizFeedback && quizFeedback.feedbacks && quizFeedback.feedbacks[index]" class="feedback-box"
                     :class="quizFeedback.feedbacks[index].isCorrect ? 'is-correct' : 'is-wrong'">
-                    <div class="explanation eng">📝 {{ quizFeedback.feedbacks[index].englishExplanation }}</div>
-                    <div class="explanation chs">💡 {{ quizFeedback.feedbacks[index].explanation }}</div>
+                    <div class="explanation eng"> ·{{ quizFeedback.feedbacks[index].englishExplanation }}</div>
+                    <div class="explanation chs">· {{ quizFeedback.feedbacks[index].explanation }}</div>
                   </div>
                 </div>
               </div>
@@ -220,6 +220,7 @@ import Sidebar from '../components/Sidebar.vue'
 import MobileHeader from '../components/MobileHeader.vue'
 import Tabbar from '../components/Tabbar.vue'
 import { generateArticleApi, translateWordApi, addVocabularyApi } from '../api/article'
+import { generateQuizApi, submitQuizApi } from '../api/quiz'
 import { submitCorrectionApi } from '../api/correction'
 
 const router = useRouter()
@@ -351,31 +352,57 @@ const handleAddVocab = async () => {
 }
 
 const generateQuiz = async () => {
-  if (!currentArticleId.value) return alert('请先生成文章！')
+  console.log('[DEBUG] 准备生成题目，当前文章ID:', currentArticleId.value)
+  if (!currentArticleId.value) {
+    console.warn('[DEBUG] 生成中断：currentArticleId 为空')
+    return alert('请先生成文章！')
+  }
   isGeneratingQuiz.value = true
   quizList.value = []
   quizFeedback.value = null
   userAnswers.value = {}
   try {
+    console.log('[DEBUG] 正在发送 API 请求: /api/quiz/generate/' + currentArticleId.value)
     const res = await generateQuizApi(currentArticleId.value)
+    console.log('[DEBUG] API 请求成功，返回数据:', res)
     quizList.value = res
-  } catch (error) { alert('生成题目失败！') }
+  } catch (error) { 
+    console.error('[DEBUG] API 请求失败:', error)
+    alert('生成题目失败，请检查后端控制台日志！') 
+  }
   finally { isGeneratingQuiz.value = false }
 }
 
 const submitQuiz = async () => {
   if (Object.keys(userAnswers.value).length < quizList.value.length) return alert('请答完所有题！')
   isGrading.value = true
+  
   try {
-    const answersArray = quizList.value.map((q, index) => ({
-      question: q.question, originalOptions: q.options, selectedOption: userAnswers.value[index]
-    }))
-    const res = await submitQuizApi({ articleId: currentArticleId.value, userAnswers: answersArray })
-
-    const correctCount = res.feedbacks.filter(f => f.isCorrect).length
-    res.score = Math.round((correctCount / res.feedbacks.length) * 100)
-    quizFeedback.value = res
-  } catch (error) { alert('交卷失败！') }
+    // 纯前端本地批改，无需调 API，完全节省 AI Token 且零延迟！
+    const feedbacks = quizList.value.map((q, index) => {
+      const selectedOption = userAnswers.value[index]
+      // 由于选项前带有 "A. " 等前缀，直接判断是否完全相等或者包含
+      const isCorrect = selectedOption === q.correctAnswer || (q.correctAnswer && selectedOption.startsWith(q.correctAnswer.charAt(0)))
+      return {
+        question: q.question,
+        userAnswer: selectedOption,
+        isCorrect: isCorrect,
+        explanation: q.explanation,
+        englishExplanation: q.englishExplanation
+      }
+    })
+    
+    const correctCount = feedbacks.filter(f => f.isCorrect).length
+    const score = Math.round((correctCount / feedbacks.length) * 100)
+    
+    quizFeedback.value = {
+      score: score,
+      feedbacks: feedbacks
+    }
+  } catch (error) { 
+    console.error('本地批改失败', error)
+    alert('交卷失败！') 
+  }
   finally { isGrading.value = false }
 }
 
@@ -421,8 +448,12 @@ const fetchUnreadCount = () => {} // 已迁移到 Sidebar 组件
 
 const getOptionClass = (qIndex, optionText) => {
   const isSelected = userAnswers.value[qIndex] === optionText
-  if (!quizFeedback.value) return isSelected ? 'selected-choice' : ''
-  if (isSelected) return quizFeedback.value.feedbacks[qIndex].isCorrect ? 'correct-choice' : 'wrong-choice'
+  if (!quizFeedback.value || !quizFeedback.value.feedbacks) return isSelected ? 'selected-choice' : ''
+  
+  const feedbackItem = quizFeedback.value.feedbacks[qIndex]
+  if (isSelected) {
+    return feedbackItem && feedbackItem.isCorrect ? 'correct-choice' : 'wrong-choice'
+  }
   return 'disabled-choice'
 }
 </script>

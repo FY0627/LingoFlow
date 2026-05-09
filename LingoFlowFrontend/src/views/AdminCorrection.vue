@@ -552,4 +552,122 @@ td {
   font-size: 14px;
   color: #6b7280;
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
+  /* 侧边栏变底部导航 */
+  .sidebar {
+    width: 100%;
+    height: 65px;
+    flex-direction: row;
+    padding: 0 20px;
+    order: 2; /* 放到下面 */
+    border-top: 1px solid #1f2937;
+    position: fixed;
+    bottom: 0;
+    z-index: 50;
+  }
+
+  .logo-box {
+    display: none;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .nav-item {
+    flex-direction: row;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+  }
+
+  .nav-item span {
+    font-size: 14px;
+    margin-left: 6px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  /* 主内容区调整 */
+  .main-content {
+    padding: 20px 15px 85px 15px; /* 给底部导航栏留出空间 */
+    order: 1;
+    overflow-x: hidden;
+  }
+
+  .admin-header {
+    margin-bottom: 0;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  /* 表格卡片适配 */
+  .table-card {
+    border-radius: 12px;
+  }
+
+  .filter-group {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-select {
+    width: 65%;
+  }
+
+  /* 允许表格在移动端横向滑动 */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 600px;
+  }
+
+  th, td {
+    padding: 12px 16px;
+  }
+
+  .content-cell {
+    max-width: 150px;
+  }
+
+  /* 模态框适配 */
+  .modal-card {
+    width: 92%;
+    padding: 20px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .compare-container {
+    grid-template-columns: 1fr; /* 从左右排版变成上下排版 */
+    gap: 15px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-reject, .btn-adopt {
+    width: 100%;
+  }
+}
 </style>

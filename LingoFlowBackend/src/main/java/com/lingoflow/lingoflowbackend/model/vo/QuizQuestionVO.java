@@ -7,4 +7,7 @@ import java.util.List;
 public class QuizQuestionVO {
     private String question;
     private List<String> options;
+    private String correctAnswer;
+    private String explanation;
+    private String englishExplanation;
 }
