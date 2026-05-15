@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: lingoflow-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: lingo_db
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./LingoFlowSQL/sql.sql:/docker-entrypoint-initdb.d/init.sql
+      - lingoflow-db-data:/var/lib/mysql
+
+  backend:
+    build: ./LingoFlowBackend
+    container_name: lingoflow-backend
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lingo_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      # 如果有其他需要动态配置的，也可以加在这里，例如 AI 的 API Key
+      # - SPRING_AI_OPENAI_API_KEY=your_key_here
+
+  frontend:
+    build: ./LingoFlowFrontend
+    container_name: lingoflow-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  lingoflow-db-data:
