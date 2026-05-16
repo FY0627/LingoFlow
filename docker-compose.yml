@@ -21,11 +21,29 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lingo_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lingo_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=123456
-      # 如果有其他需要动态配置的，也可以加在这里，例如 AI 的 API Key
-      # - SPRING_AI_OPENAI_API_KEY=your_key_here
+      - SPRING_AI_OPENAI_BASE_URL=http://ollama:11434
+      - SPRING_AI_OPENAI_API_KEY=ollama
+      - SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL=glm4
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lingoflow-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    # 如果你有英伟达显卡，取消下面这段注释可以开启显卡加速
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   frontend:
     build: ./LingoFlowFrontend
@@ -38,3 +56,4 @@ services:
 
 volumes:
   lingoflow-db-data:
+  ollama-data:
